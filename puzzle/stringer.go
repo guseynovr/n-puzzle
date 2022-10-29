@@ -40,6 +40,7 @@ func (p *Puzzle) String() string {
 	return ps.sb.String()
 }
 
+// "│x│x│\n"
 func (ps *puzzleStringer) writeRow(row []int) {
 	ps.sb.WriteRune('│')
 	for j, cell := range row {
@@ -51,6 +52,7 @@ func (ps *puzzleStringer) writeRow(row []int) {
 	ps.sb.WriteString("│\n")
 }
 
+// "┌─┬─┐\n"
 func (ps *puzzleStringer) writeTopLine() {
 	ps.sb.WriteRune('┌')
 	for i := 0; i < ps.size; i++ {
@@ -62,6 +64,7 @@ func (ps *puzzleStringer) writeTopLine() {
 	ps.sb.WriteString("┐\n")
 }
 
+// "├─┼─┤\n"
 func (ps *puzzleStringer) writeMiddleLine() {
 	ps.sb.WriteRune('├')
 	for i := 0; i < ps.size; i++ {
@@ -73,6 +76,7 @@ func (ps *puzzleStringer) writeMiddleLine() {
 	ps.sb.WriteString("┤\n")
 }
 
+// "└─┴─┘"
 func (ps *puzzleStringer) writeBottomLine() {
 	ps.sb.WriteRune('└')
 	for i := 0; i < ps.size; i++ {
