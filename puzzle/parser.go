@@ -1,4 +1,4 @@
-package parser
+package puzzle
 
 import (
 	"bufio"
@@ -8,14 +8,13 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-
-	"../model"
 )
 
-func Parse(filename string) (model.Puzzle, error) {
+// Parse parses Puzzle struct from filename.
+func Parse(filename string) (*Puzzle, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return model.Puzzle{}, err
+		return nil, err
 	}
 	defer file.Close()
 
@@ -30,17 +29,17 @@ func Parse(filename string) (model.Puzzle, error) {
 		if size == 0 {
 			size, err = strconv.Atoi(line)
 			if err != nil {
-				return model.Puzzle{}, fmt.Errorf("parsing size: %w", err)
+				return nil, fmt.Errorf("parsing size: %w", err)
 			}
 			if size < 3 {
-				return model.Puzzle{}, fmt.Errorf("size must be > 2, got %d", size)
+				return nil, fmt.Errorf("size must be > 2, got %d", size)
 			}
 			cells = make([]int, 0, size*size)
 			continue
 		}
 		newCells, err := scanCells(line)
 		if err != nil {
-			return model.Puzzle{}, fmt.Errorf("scan cells: %w", err)
+			return nil, fmt.Errorf("scan cells: %w", err)
 		}
 		cells = append(cells, newCells...)
 	}
@@ -48,15 +47,20 @@ func Parse(filename string) (model.Puzzle, error) {
 		log.Fatal("scanning file: ", err)
 	}
 	if len(cells) != size*size {
-		return model.Puzzle{}, fmt.Errorf("incorrect number of cells, expected %d, got %d", size*size, len(cells))
+		return nil, fmt.Errorf("incorrect number of cells, expected %d, got %d",
+			size*size, len(cells))
 	}
-	if err := validateCells(cells); err != nil {
-		return model.Puzzle{}, fmt.Errorf("validateCells: %w", err)
+
+	result := Puzzle{
+		size:  size,
+		cells: to2D(cells, size)}
+	if err := result.validateCells(cells); err != nil {
+		return nil, fmt.Errorf("validateCells: %w", err)
 	}
-	return model.Puzzle{Size: size, Cells: to2D(cells, size)}, nil
+	return &result, nil
 }
 
-func validateCells(cells []int) error {
+func (p *Puzzle) validateCells(cells []int) error {
 	unique := make(map[int]struct{})
 	keys := make([]int, len(cells))
 	for i, v := range cells {
@@ -65,6 +69,10 @@ func validateCells(cells []int) error {
 		}
 		unique[v] = struct{}{}
 		keys[i] = v
+		if v == 0 {
+			p.emptyX = i % p.size
+			p.emptyY = i / p.size
+		}
 	}
 	sort.Ints(keys)
 	if keys[0] != 0 {
@@ -89,7 +97,7 @@ func to2D(slice []int, size int) [][]int {
 	return result
 }
 
-// scanCells extracts a slice of ints from space separated string of numbers
+// scanCells extracts a slice of ints from space separated string of numbers.
 func scanCells(line string) ([]int, error) {
 	var err error
 	fields := strings.Fields(line)
