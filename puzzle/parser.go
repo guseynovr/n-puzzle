@@ -12,11 +12,17 @@ import (
 
 // Parse parses Puzzle struct from filename.
 func Parse(filename string) (*Puzzle, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
+	var file *os.File
+	var err error
+	if filename == "" {
+		file = os.Stdin
+	} else {
+		file, err = os.Open(filename)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
 	}
-	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	var size int

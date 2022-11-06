@@ -1,7 +1,5 @@
 package puzzle
 
-import "fmt"
-
 func (p *Puzzle) IsSolvable() bool {
 	invCount := p.countInversions()
 
@@ -23,7 +21,7 @@ func (p *Puzzle) countInversions() int {
 	} else {
 		tiles = p.expandSnail()
 	}
-	fmt.Println(tiles)
+	// fmt.Println(tiles)
 
 	count := 0
 	for i, t := range tiles {

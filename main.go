@@ -5,27 +5,21 @@ import (
 	"log"
 	"os"
 
-	"n-puzzle/puzzle"
+	"npuzzle/config"
 )
 
 func main() {
-	//TODO: choose heuristic
-	//TODO: get file from args
-	//TODO: generate random if filepath not given
-	if len(os.Args) < 2 {
-		log.Fatal("not enough arguments")
-	}
-	filename := os.Args[1]
-	p, err := puzzle.Parse(filename)
+	cfg, err := config.Parse()
 	if err != nil {
 		log.Fatal(err)
 	}
-	// p := puzzle.Random(2)
+	p, err := cfg.Forge()
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println(p)
 	if !p.IsSolvable() {
 		fmt.Println("Puzzle is unsolvable")
 		os.Exit(0)
 	}
 }
-
-// TODO: func processOptions() (size int, )
