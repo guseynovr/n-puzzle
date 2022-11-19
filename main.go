@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"npuzzle/config"
 )
@@ -20,6 +19,10 @@ func main() {
 	fmt.Println(p)
 	if !p.IsSolvable() {
 		fmt.Println("Puzzle is unsolvable")
-		os.Exit(0)
+		return
+	}
+	if p.IsSolved() {
+		fmt.Println("Solved!")
+		return
 	}
 }

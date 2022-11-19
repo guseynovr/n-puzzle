@@ -52,6 +52,9 @@ func Parse(filename string) (*Puzzle, error) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal("scanning file: ", err)
 	}
+	if size == 0 {
+		return nil, fmt.Errorf("empty input")
+	}
 	if len(cells) != size*size {
 		return nil, fmt.Errorf("incorrect number of cells, expected %d, got %d",
 			size*size, len(cells))
@@ -63,6 +66,8 @@ func Parse(filename string) (*Puzzle, error) {
 	if err := result.validateCells(cells); err != nil {
 		return nil, fmt.Errorf("validateCells: %w", err)
 	}
+	result.target = result.targetState()
+	// fmt.Println(result.target)
 	return &result, nil
 }
 

@@ -7,11 +7,16 @@ func (p *Puzzle) IsSolvable() bool {
 		return invCount%2 == 0
 	}
 	emptyPosFromBottom := p.size - p.emptyY
+	res := false
 	if emptyPosFromBottom%2 == 0 {
-		return invCount%2 != 0
+		res = invCount%2 != 0
 	} else {
-		return invCount%2 == 0
+		res = invCount%2 == 0
 	}
+	if p.size%8 == 0 || p.size%8 == 6 {
+		res = !res
+	}
+	return res
 }
 
 func (p *Puzzle) countInversions() int {
@@ -60,13 +65,13 @@ const (
 func (p *Puzzle) expandSnail() []int {
 	tileCnt := p.size * p.size
 	result := make([]int, 0, tileCnt)
-	p.iterateSnail(func(i int) {
-		result = append(result, i)
+	p.iterateSnail(func(x, y int) {
+		result = append(result, p.cells[y][x])
 	})
 	return result
 }
 
-func (p *Puzzle) iterateSnail(f func(int)) {
+func (p *Puzzle) iterateSnail(f func(int, int)) {
 	tileCnt := p.size * p.size
 	i := 0
 	x, y, xMax, yMax, xMin, yMin := 0, 0, p.size, p.size, 0, 0
@@ -74,7 +79,7 @@ func (p *Puzzle) iterateSnail(f func(int)) {
 	change := false
 	for i < tileCnt {
 		if !change {
-			f(p.cells[y][x])
+			f(x, y)
 			i++
 		}
 		change = false

@@ -12,12 +12,14 @@ func Random(size int) *Puzzle {
 	cells := to2D(tiles, size)
 	emptyX, emptyY := getEmptyXY(cells)
 
-	return &Puzzle{
+	result := Puzzle{
 		size:   size,
 		cells:  cells,
 		emptyX: emptyX,
 		emptyY: emptyY,
 	}
+	result.target = result.targetState()
+	return &result
 }
 
 func getEmptyXY(cells [][]int) (int, int) {
