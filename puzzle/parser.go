@@ -11,6 +11,7 @@ import (
 )
 
 // Parse parses Puzzle struct from filename.
+// If filename is an empty string, reads from stdin.
 func Parse(filename string) (*Puzzle, error) {
 	var file *os.File
 	var err error
@@ -26,7 +27,7 @@ func Parse(filename string) (*Puzzle, error) {
 
 	scanner := bufio.NewScanner(file)
 	var size int
-	var cells []int
+	var tiles []int
 	for scanner.Scan() {
 		line := rmCommentAndTrim(scanner.Text())
 		if len(line) == 0 {
@@ -40,14 +41,14 @@ func Parse(filename string) (*Puzzle, error) {
 			if size < 3 {
 				return nil, fmt.Errorf("size must be > 2, got %d", size)
 			}
-			cells = make([]int, 0, size*size)
+			tiles = make([]int, 0, size*size)
 			continue
 		}
-		newCells, err := scanCells(line)
+		newtiles, err := scanTiles(line)
 		if err != nil {
-			return nil, fmt.Errorf("scan cells: %w", err)
+			return nil, fmt.Errorf("scan tiles: %w", err)
 		}
-		cells = append(cells, newCells...)
+		tiles = append(tiles, newtiles...)
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal("scanning file: ", err)
@@ -55,46 +56,43 @@ func Parse(filename string) (*Puzzle, error) {
 	if size == 0 {
 		return nil, fmt.Errorf("empty input")
 	}
-	if len(cells) != size*size {
-		return nil, fmt.Errorf("incorrect number of cells, expected %d, got %d",
-			size*size, len(cells))
+	if len(tiles) != size*size {
+		return nil, fmt.Errorf("incorrect number of tiles, expected %d, got %d",
+			size*size, len(tiles))
 	}
 
-	result := Puzzle{
-		size:  size,
-		cells: to2D(cells, size)}
-	if err := result.validateCells(cells); err != nil {
-		return nil, fmt.Errorf("validateCells: %w", err)
+	x, y, err := validateTiles(tiles, size)
+	if err != nil {
+		return nil, fmt.Errorf("validatetiles: %w", err)
 	}
-	result.target = result.targetState()
-	// fmt.Println(result.target)
-	return &result, nil
+	return newPuzzle(size, x, y, to2D(tiles, size)), nil
 }
 
-func (p *Puzzle) validateCells(cells []int) error {
+func validateTiles(tiles []int, size int) (int, int, error) {
 	unique := make(map[int]struct{})
-	keys := make([]int, len(cells))
-	for i, v := range cells {
+	keys := make([]int, len(tiles))
+	x, y := 0, 0
+	for i, v := range tiles {
 		if _, exists := unique[v]; exists {
-			return fmt.Errorf("cell values must be unique")
+			return 0, 0, fmt.Errorf("tile values must be unique")
 		}
 		unique[v] = struct{}{}
 		keys[i] = v
 		if v == 0 {
-			p.emptyX = i % p.size
-			p.emptyY = i / p.size
+			x = i % size
+			y = i / size
 		}
 	}
 	sort.Ints(keys)
 	if keys[0] != 0 {
-		return fmt.Errorf("must have one empty cell (with 0 value)")
+		return 0, 0, fmt.Errorf("must have one empty tile (with 0 value)")
 	}
 	for i := 0; i < len(keys); i++ {
 		if i != keys[i] {
-			return fmt.Errorf("invalid cell values")
+			return 0, 0, fmt.Errorf("invalid tile values")
 		}
 	}
-	return nil
+	return x, y, nil
 }
 
 func to2D(slice []int, size int) [][]int {
@@ -108,18 +106,18 @@ func to2D(slice []int, size int) [][]int {
 	return result
 }
 
-// scanCells extracts a slice of ints from space separated string of numbers.
-func scanCells(line string) ([]int, error) {
+// scanTiles extracts a slice of ints from space separated string of numbers.
+func scanTiles(line string) ([]int, error) {
 	var err error
 	fields := strings.Fields(line)
-	cells := make([]int, len(fields))
+	tiles := make([]int, len(fields))
 	for i, f := range fields {
-		cells[i], err = strconv.Atoi(f)
+		tiles[i], err = strconv.Atoi(f)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return cells, nil
+	return tiles, nil
 }
 
 func rmCommentAndTrim(line string) string {

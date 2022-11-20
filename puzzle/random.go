@@ -5,25 +5,19 @@ import (
 	"time"
 )
 
+// Random generates random puzzle with given size.
 func Random(size int) *Puzzle {
 	source := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(source)
-	tiles := r.Perm(size * size)
-	cells := to2D(tiles, size)
-	emptyX, emptyY := getEmptyXY(cells)
+	tiles1D := r.Perm(size * size)
+	tiles := to2D(tiles1D, size)
+	emptyX, emptyY := getEmptyXY(tiles)
 
-	result := Puzzle{
-		size:   size,
-		cells:  cells,
-		emptyX: emptyX,
-		emptyY: emptyY,
-	}
-	result.target = result.targetState()
-	return &result
+	return newPuzzle(size, emptyX, emptyY, tiles)
 }
 
-func getEmptyXY(cells [][]int) (int, int) {
-	for y, row := range cells {
+func getEmptyXY(tiles [][]int) (int, int) {
+	for y, row := range tiles {
 		for x, cell := range row {
 			if cell == 0 {
 				return x, y

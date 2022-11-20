@@ -1,19 +1,20 @@
 package puzzle
 
+// IsSolvable
 func (p *Puzzle) IsSolvable() bool {
 	invCount := p.countInversions()
 
-	if p.size%2 != 0 {
+	if p.Size%2 != 0 {
 		return invCount%2 == 0
 	}
-	emptyPosFromBottom := p.size - p.emptyY
+	emptyPosFromBottom := p.Size - p.emptyY
 	res := false
 	if emptyPosFromBottom%2 == 0 {
 		res = invCount%2 != 0
 	} else {
 		res = invCount%2 == 0
 	}
-	if p.size%8 == 0 || p.size%8 == 6 {
+	if p.Size%8 == 0 || p.Size%8 == 6 {
 		res = !res
 	}
 	return res
@@ -21,7 +22,7 @@ func (p *Puzzle) IsSolvable() bool {
 
 func (p *Puzzle) countInversions() int {
 	var tiles []int
-	if p.size%2 == 0 {
+	if p.Size%2 == 0 {
 		tiles = p.expand()
 	} else {
 		tiles = p.expandSnail()
@@ -45,10 +46,10 @@ func (p *Puzzle) countInversions() int {
 	return count
 }
 
-// expand returns p.cells in form of a 1D array
+// expand returns p.tiles in form of a 1D array
 func (p *Puzzle) expand() []int {
-	result := make([]int, 0, p.size*p.size)
-	for _, row := range p.cells {
+	result := make([]int, 0, p.Size*p.Size)
+	for _, row := range p.Tiles {
 		result = append(result, row...)
 	}
 	return result
@@ -61,20 +62,20 @@ const (
 	up
 )
 
-// expandSnail returns p.cells for snail solution in form of a 1D array
+// expandSnail returns p.tiles for snail solution in form of a 1D array
 func (p *Puzzle) expandSnail() []int {
-	tileCnt := p.size * p.size
+	tileCnt := p.Size * p.Size
 	result := make([]int, 0, tileCnt)
 	p.iterateSnail(func(x, y int) {
-		result = append(result, p.cells[y][x])
+		result = append(result, p.Tiles[y][x])
 	})
 	return result
 }
 
 func (p *Puzzle) iterateSnail(f func(int, int)) {
-	tileCnt := p.size * p.size
+	tileCnt := p.Size * p.Size
 	i := 0
-	x, y, xMax, yMax, xMin, yMin := 0, 0, p.size, p.size, 0, 0
+	x, y, xMax, yMax, xMin, yMin := 0, 0, p.Size, p.Size, 0, 0
 	dir := right
 	change := false
 	for i < tileCnt {

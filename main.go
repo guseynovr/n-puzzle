@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"npuzzle/algorithm"
 	"npuzzle/config"
 )
 
@@ -25,4 +26,6 @@ func main() {
 		fmt.Println("Solved!")
 		return
 	}
+	stats := algorithm.AStar(*p, cfg.Heuristic.F)
+	_ = stats
 }

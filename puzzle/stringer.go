@@ -12,27 +12,31 @@ type puzzleStringer struct {
 	size       int
 }
 
-/*	┌─┬─┬─┐
-	│ │ │ │
+/*
+String prints puzzle as a table.
+
+	┌─┬─┬─┐
+	│0│1│2│
 	├─┼─┼─┤
-	│ │ │ │
+	│3│4│5│
 	├─┼─┼─┤
-	│ │ │ │
-	└─┴─┴─┘ */
+	│6│7│8│
+	└─┴─┴─┘
+*/
 func (p *Puzzle) String() string {
-	width := len(fmt.Sprint(p.size*p.size - 1))
+	width := len(fmt.Sprint(p.Size*p.Size - 1))
 	horizontal := strings.Repeat("─", width)
 
 	ps := puzzleStringer{
 		sb:         strings.Builder{},
 		width:      width,
 		horizontal: horizontal,
-		size:       p.size,
+		size:       p.Size,
 	}
 	ps.writeTopLine()
-	for i, row := range p.cells {
+	for i, row := range p.Tiles {
 		ps.writeRow(row)
-		if i < p.size-1 {
+		if i < p.Size-1 {
 			ps.writeMiddleLine()
 		}
 	}
@@ -43,8 +47,8 @@ func (p *Puzzle) String() string {
 // "│x│x│\n"
 func (ps *puzzleStringer) writeRow(row []int) {
 	ps.sb.WriteRune('│')
-	for j, cell := range row {
-		ps.sb.WriteString(fmt.Sprintf("%*d", ps.width, cell))
+	for j, tile := range row {
+		ps.sb.WriteString(fmt.Sprintf("%*d", ps.width, tile))
 		if j < ps.size-1 {
 			ps.sb.WriteRune('│')
 		}

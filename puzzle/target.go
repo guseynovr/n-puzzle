@@ -6,17 +6,17 @@ import (
 )
 
 func (p *Puzzle) IsSolved() bool {
-	if len(p.cells) != len(p.target) {
+	if len(p.Tiles) != len(p.Target) {
 		log.Fatal(fmt.Errorf("target size(y) differs from the puzzle"))
 		return false
 	}
-	for y, row := range p.cells {
-		if len(row) != len(p.target[y]) {
+	for y, row := range p.Tiles {
+		if len(row) != len(p.Target[y]) {
 			log.Fatal(fmt.Errorf("target size(x) differs from the puzzle"))
 			return false
 		}
 		for x, v := range row {
-			if v != p.target[y][x] {
+			if v != p.Target[y][x] {
 				return false
 			}
 		}
@@ -25,9 +25,9 @@ func (p *Puzzle) IsSolved() bool {
 }
 
 func (p *Puzzle) targetState() [][]int {
-	target := make([][]int, 0, p.size)
-	for i := 0; i < p.size; i++ {
-		target = append(target, make([]int, p.size))
+	target := make([][]int, 0, p.Size)
+	for i := 0; i < p.Size; i++ {
+		target = append(target, make([]int, p.Size))
 	}
 	i := 1
 	lastX, lastY := 0, 0
@@ -37,5 +37,15 @@ func (p *Puzzle) targetState() [][]int {
 		lastX, lastY = x, y
 	})
 	target[lastY][lastX] = 0
+
+	p.TargetXY = make(map[int]struct{ X, Y int })
+	for y, row := range p.Target {
+		for x, t := range row {
+			p.TargetXY[t] = struct {
+				X int
+				Y int
+			}{x, y}
+		}
+	}
 	return target
 }

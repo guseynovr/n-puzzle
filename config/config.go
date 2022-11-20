@@ -3,8 +3,10 @@ package config
 import (
 	"flag"
 	"fmt"
-	"npuzzle/puzzle"
 	"os"
+
+	"npuzzle/algorithm"
+	"npuzzle/puzzle"
 )
 
 type Config struct {
@@ -20,8 +22,11 @@ func Parse() (*Config, error) {
 		"generate random puzzle of given `size`")
 	fs.StringVar(&cfg.file, "f", "",
 		"`path` to the file with a starting board")
-	fs.TextVar(&cfg.Heuristic, "heuristics", heuristic("euclidian"),
-		"`heuristics` to be used")
+	fs.TextVar(&cfg.Heuristic, "he",
+		heuristic{
+			F:    algorithm.Manhattan,
+			desc: "manthattan",
+		}, "`heuristics` to be used: Manhattan, Euclidean, Out-of-place")
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		return nil, err
 	}

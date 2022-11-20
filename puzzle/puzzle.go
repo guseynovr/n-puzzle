@@ -1,93 +1,38 @@
+/*
+Package puzzle provides a type and functions for creating, manipulating,
+and analyzing npuzzle.
+asd
+*/
 package puzzle
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Puzzle struct {
-	size   int
-	cells  [][]int
-	emptyX int
-	emptyY int
-	target [][]int
+	Size     int
+	Tiles    [][]int
+	emptyX   int
+	emptyY   int
+	Target   [][]int
+	TargetXY map[int]struct{ X, Y int }
+	hash     string
 }
 
-func (p *Puzzle) FillFromLeft() error {
-	if p.emptyX == 0 {
-		return fmt.Errorf("can't fill empty cell from left")
+func newPuzzle(size, x, y int, tiles [][]int) *Puzzle {
+	p := Puzzle{
+		Size:   size,
+		Tiles:  tiles,
+		emptyX: x,
+		emptyY: y,
 	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY][p.emptyX-1] =
-		p.cells[p.emptyY][p.emptyX-1], p.cells[p.emptyY][p.emptyX]
-	p.emptyX -= 1
-	return nil
+	p.Target = p.targetState()
+	p.updateHash()
+	return &p
 }
 
-func (p *Puzzle) FillFromRight() error {
-	if p.emptyX == p.size-1 {
-		return fmt.Errorf("can't fill empty cell from right")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY][p.emptyX+1] =
-		p.cells[p.emptyY][p.emptyX+1], p.cells[p.emptyY][p.emptyX]
-	p.emptyX += 1
-	return nil
+func (p *Puzzle) Hash() string {
+	return p.hash
 }
 
-func (p *Puzzle) FillFromAbove() error {
-	if p.emptyY == 0 {
-		return fmt.Errorf("can't fill empty cell from above")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY-1][p.emptyX] =
-		p.cells[p.emptyY-1][p.emptyX], p.cells[p.emptyY][p.emptyX]
-	p.emptyY -= 1
-	return nil
-}
-
-func (p *Puzzle) FillFromBelow() error {
-	if p.emptyY == p.size-1 {
-		return fmt.Errorf("can't fill empty cell from below")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY+1][p.emptyX] =
-		p.cells[p.emptyY+1][p.emptyX], p.cells[p.emptyY][p.emptyX]
-	p.emptyY += 1
-	return nil
-}
-
-func (p Puzzle) FilledFromLeft() (Puzzle, error) {
-	if p.emptyX == 0 {
-		return p, fmt.Errorf("can't fill empty cell from left")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY][p.emptyX-1] =
-		p.cells[p.emptyY][p.emptyX-1], p.cells[p.emptyY][p.emptyX]
-	p.emptyX -= 1
-	return p, nil
-}
-
-func (p Puzzle) FilledFromRight() (Puzzle, error) {
-	if p.emptyX == p.size-1 {
-		return p, fmt.Errorf("can't fill empty cell from right")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY][p.emptyX+1] =
-		p.cells[p.emptyY][p.emptyX+1], p.cells[p.emptyY][p.emptyX]
-	p.emptyX += 1
-	return p, nil
-}
-
-func (p Puzzle) FilledFromAbove() (Puzzle, error) {
-	if p.emptyY == 0 {
-		return p, fmt.Errorf("can't fill empty cell from above")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY-1][p.emptyX] =
-		p.cells[p.emptyY-1][p.emptyX], p.cells[p.emptyY][p.emptyX]
-	p.emptyY -= 1
-	return p, nil
-}
-
-func (p Puzzle) FilledFromBelow() (Puzzle, error) {
-	if p.emptyY == p.size-1 {
-		return p, fmt.Errorf("can't fill empty cell from below")
-	}
-	p.cells[p.emptyY][p.emptyX], p.cells[p.emptyY+1][p.emptyX] =
-		p.cells[p.emptyY+1][p.emptyX], p.cells[p.emptyY][p.emptyX]
-	p.emptyY += 1
-	return p, nil
+func (p *Puzzle) updateHash() {
+	p.hash = fmt.Sprintf("%d%d%d%v", p.Size, p.emptyX, p.emptyY, p.Tiles)
 }
