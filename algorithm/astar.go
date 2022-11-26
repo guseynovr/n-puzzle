@@ -41,6 +41,7 @@ func AStar(p puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
 		// fmt.Printf("got %d neighbours\n", len(neighbours))
 		for _, n := range neighbours {
 			if _, ok := closed[n.hash()]; ok {
+				// fmt.Printf("hash: %s\nfor %v\n", n.hash(), n)
 				continue
 			}
 			index, ok := nodeIndex(n, open)
@@ -50,6 +51,11 @@ func AStar(p puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
 			if ok && n.g < open[index].g {
 				// fmt.Println("New path is shorter")
 				open[index] = n
+				// open[index].g = n.g
+				// open[index].parent = current
+				// if open[index].h != n.h {
+				// 	log.Fatal("h != h")
+				// }
 			} else if !ok {
 				open = append(open, n)
 				stats.TotalStates++
@@ -90,11 +96,13 @@ func popLowestF(open *[]*Node) *Node {
 	if len(*open) == 0 {
 		log.Fatal("empty open inside loop")
 	}
-	min := int(^uint(0) >> 1)
+	minF := int(^uint(0) >> 1)
+	minH := int(^uint(0) >> 1)
 	index := 0
 	for i, n := range *open {
-		if n.f() < min {
-			min = n.f()
+		if n.f() < minF || n.f() == minF && n.h < minH {
+			minF = n.f()
+			minH = n.h
 			index = i
 		}
 	}
