@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(p)
+	fmt.Printf("Start:\n%s\n", p)
 	if !p.IsSolvable() {
 		fmt.Println("Puzzle is unsolvable")
 		return
@@ -27,5 +27,8 @@ func main() {
 		return
 	}
 	stats := algorithm.AStar(*p, cfg.Heuristic.F)
-	_ = stats
+	fmt.Println("Finished!")
+	fmt.Println(stats.Path[len(stats.Path)-1])
+	fmt.Println("Heuristics used:", cfg.Heuristic.Desc)
+	fmt.Println(stats)
 }

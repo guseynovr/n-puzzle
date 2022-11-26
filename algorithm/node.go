@@ -13,11 +13,11 @@ func newNode(p puzzle.Puzzle, parent *Node, h func(puzzle.Puzzle) int) *Node {
 	n := Node{
 		puzzle: p,
 		parent: parent,
+		h:      h(p),
 	}
 	if parent != nil {
-		n.g = parent.g + 1
+		n.g = parent.g + 10
 	}
-	n.h = h(p)
 	return &n
 }
 

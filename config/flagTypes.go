@@ -28,7 +28,7 @@ func (s size) MarshalText() ([]byte, error) {
 
 type heuristic struct {
 	F    func(puzzle.Puzzle) int
-	desc string
+	Desc string
 }
 
 func (h *heuristic) UnmarshalText(text []byte) error {
@@ -37,17 +37,17 @@ func (h *heuristic) UnmarshalText(text []byte) error {
 	case "manhattan":
 		*h = heuristic{
 			F:    algorithm.Manhattan,
-			desc: "manhattan",
+			Desc: "manhattan",
 		}
 	case "out-of-place":
 		*h = heuristic{
 			F:    algorithm.OutOfPlace,
-			desc: "out-of-place",
+			Desc: "out-of-place",
 		}
 	case "euclidean":
 		*h = heuristic{
 			F:    algorithm.Euclidean,
-			desc: "euclidean",
+			Desc: "euclidean",
 		}
 	default:
 		return fmt.Errorf("unsupported heuristic: %s", text)
@@ -56,5 +56,5 @@ func (h *heuristic) UnmarshalText(text []byte) error {
 }
 
 func (h heuristic) MarshalText() ([]byte, error) {
-	return []byte(h.desc), nil
+	return []byte(h.Desc), nil
 }

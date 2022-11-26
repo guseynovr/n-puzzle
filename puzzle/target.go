@@ -39,7 +39,7 @@ func (p *Puzzle) targetState() [][]int {
 	target[lastY][lastX] = 0
 
 	p.TargetXY = make(map[int]struct{ X, Y int })
-	for y, row := range p.Target {
+	for y, row := range target {
 		for x, t := range row {
 			p.TargetXY[t] = struct {
 				X int

@@ -25,7 +25,7 @@ func Parse() (*Config, error) {
 	fs.TextVar(&cfg.Heuristic, "he",
 		heuristic{
 			F:    algorithm.Manhattan,
-			desc: "manthattan",
+			Desc: "manhattan",
 		}, "`heuristics` to be used: Manhattan, Euclidean, Out-of-place")
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		return nil, err

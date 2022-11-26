@@ -23,7 +23,7 @@ String prints puzzle as a table.
 	│6│7│8│
 	└─┴─┴─┘
 */
-func (p *Puzzle) String() string {
+func (p Puzzle) String() string {
 	width := len(fmt.Sprint(p.Size*p.Size - 1))
 	horizontal := strings.Repeat("─", width)
 
