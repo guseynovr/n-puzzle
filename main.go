@@ -8,6 +8,7 @@ import (
 	"npuzzle/config"
 )
 
+// v2
 func main() {
 	cfg, err := config.Parse()
 	if err != nil {
