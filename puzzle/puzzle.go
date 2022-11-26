@@ -7,26 +7,47 @@ package puzzle
 
 import "fmt"
 
+type Tile struct {
+	Value    int
+	Relevant bool
+	Locked   bool
+	Target   Coordinates
+}
+
+type Coordinates struct {
+	X, Y int
+}
+
 type Puzzle struct {
-	Size     int
-	Tiles    [][]int
-	emptyX   int
-	emptyY   int
-	Target   [][]int
-	TargetXY map[int]struct{ X, Y int }
-	hash     string
+	Size  int
+	Tiles [][]Tile
+	Zero  Coordinates
+	// Target [][]int
+	hash string
+	// TargetXY map[int]Coordinates
 }
 
 func newPuzzle(size, x, y int, tiles [][]int) *Puzzle {
 	p := Puzzle{
-		Size:   size,
-		Tiles:  tiles,
-		emptyX: x,
-		emptyY: y,
+		Size: size,
+		Zero: Coordinates{x, y},
 	}
-	p.Target = p.targetState()
+	p.initTiles(tiles)
+	p.initTargetState()
 	p.updateHash()
 	return &p
+}
+
+func (p *Puzzle) initTiles(tiles [][]int) {
+	p.Tiles = make([][]Tile, 0, p.Size)
+	for _, row := range tiles {
+		tileRow := make([]Tile, 0, p.Size)
+		for _, v := range row {
+			tile := Tile{Value: v, Relevant: true}
+			tileRow = append(tileRow, tile)
+		}
+		p.Tiles = append(p.Tiles, tileRow)
+	}
 }
 
 func (p *Puzzle) Hash() string {
@@ -34,5 +55,5 @@ func (p *Puzzle) Hash() string {
 }
 
 func (p *Puzzle) updateHash() {
-	p.hash = fmt.Sprintf("%d%d%d%v", p.Size, p.emptyX, p.emptyY, p.Tiles)
+	p.hash = fmt.Sprintf("%d%v%v", p.Size, p.Zero, p.Tiles)
 }

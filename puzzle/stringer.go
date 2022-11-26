@@ -45,10 +45,10 @@ func (p Puzzle) String() string {
 }
 
 // "│x│x│\n"
-func (ps *puzzleStringer) writeRow(row []int) {
+func (ps *puzzleStringer) writeRow(row []Tile) {
 	ps.sb.WriteRune('│')
 	for j, tile := range row {
-		ps.sb.WriteString(fmt.Sprintf("%*d", ps.width, tile))
+		ps.sb.WriteString(fmt.Sprintf("%*d", ps.width, tile.Value))
 		if j < ps.size-1 {
 			ps.sb.WriteRune('│')
 		}

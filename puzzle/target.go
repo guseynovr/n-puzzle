@@ -1,22 +1,21 @@
 package puzzle
 
 import (
-	"fmt"
 	"log"
 )
 
 func (p *Puzzle) IsSolved() bool {
-	if len(p.Tiles) != len(p.Target) {
-		log.Fatal(fmt.Errorf("target size(y) differs from the puzzle"))
-		return false
-	}
+	// if len(p.Tiles) != len(p.Target) {
+	// 	log.Fatal(fmt.Errorf("target size(y) differs from the puzzle"))
+	// 	return false
+	// }
 	for y, row := range p.Tiles {
-		if len(row) != len(p.Target[y]) {
-			log.Fatal(fmt.Errorf("target size(x) differs from the puzzle"))
-			return false
-		}
+		// if len(row) != len(p.Target[y]) {
+		// 	log.Fatal(fmt.Errorf("target size(x) differs from the puzzle"))
+		// 	return false
+		// }
 		for x, v := range row {
-			if v != p.Target[y][x] {
+			if v.Relevant && (x != v.Target.X || y != v.Target.Y) {
 				return false
 			}
 		}
@@ -24,28 +23,48 @@ func (p *Puzzle) IsSolved() bool {
 	return true
 }
 
-func (p *Puzzle) targetState() [][]int {
-	target := make([][]int, 0, p.Size)
-	for i := 0; i < p.Size; i++ {
-		target = append(target, make([]int, p.Size))
-	}
+func (p *Puzzle) initTargetState() {
+	target := make(map[int]Coordinates)
 	i := 1
 	lastX, lastY := 0, 0
 	p.iterateSnail(func(x, y int) {
-		target[y][x] = i
+		target[i] = Coordinates{x, y}
 		i++
 		lastX, lastY = x, y
 	})
-	target[lastY][lastX] = 0
+	target[0] = Coordinates{lastX, lastY}
 
-	p.TargetXY = make(map[int]struct{ X, Y int })
-	for y, row := range target {
+	for y, row := range p.Tiles {
 		for x, t := range row {
-			p.TargetXY[t] = struct {
-				X int
-				Y int
-			}{x, y}
+			p.Tiles[y][x].Target = target[t.Value]
 		}
 	}
-	return target
+}
+
+func (p *Puzzle) MakeAllIrrelevant() {
+	for y, row := range p.Tiles {
+		for x := range row {
+			p.Tiles[y][x].Relevant = false
+		}
+	}
+}
+
+func (p *Puzzle) MakeAllRelevant() {
+	for y, row := range p.Tiles {
+		for x := range row {
+			p.Tiles[y][x].Relevant = true
+		}
+	}
+}
+
+func (p *Puzzle) GetPosition(i int) Coordinates {
+	for y, row := range p.Tiles {
+		for x, t := range row {
+			if t.Value == i {
+				return Coordinates{x, y}
+			}
+		}
+	}
+	log.Fatal("Requested unexistent tile: ", i)
+	return Coordinates{}
 }

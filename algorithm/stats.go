@@ -29,3 +29,12 @@ func (s Stats) String() string {
 	sb.WriteString("Time required: " + s.t.String())
 	return sb.String()
 }
+
+func (s Stats) Append(s2 Stats) Stats {
+	return Stats{
+		TotalStates: s.TotalStates + s2.TotalStates,
+		MaxStates:   s.MaxStates + s2.MaxStates,
+		PathLen:     s.PathLen + s2.PathLen,
+		Path:        append(s.Path, s2.Path...),
+	}
+}

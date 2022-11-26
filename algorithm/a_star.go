@@ -1,61 +1,55 @@
 package algorithm
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"npuzzle/puzzle"
-	"time"
+	"os"
 )
 
-func AStar(p puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
-	start := time.Now()
+func AStar(p *puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
+	// start := time.Now()
 	open := []*Node{}
 	closed := make(map[string]*Node)
 
-	open = append(open, newNode(p, nil, h))
+	open = append(open, newNode(*p, nil, h))
 	stats.MaxStates, stats.TotalStates = 1, 1
-	// scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(os.Stdin)
 
 	// current := open[0]
 	for len(open) != 0 {
-		// println("len open", len(open))
 		if stats.MaxStates < len(open)+len(closed) {
 			stats.MaxStates = len(open) + len(closed)
 		}
 		current := popLowestF(&open)
 		closed[current.hash()] = current
-		// fmt.Print(current.puzzle)
-		// fmt.Println(current.g, current.h)
+		fmt.Print(current.puzzle)
+		fmt.Println(current.g, current.h)
 		// fmt.Printf("open %d, closed %d\n", len(open), len(closed))
-		// if scanner.Scan() {
-		// 	scanner.Text()
-		// }
+		// time.Sleep(time.Second * 2)
+		if scanner.Scan() {
+			scanner.Text()
+		}
 		if current.puzzle.IsSolved() {
-			// fmt.Printf("open %d, closed %d\n", len(open), len(closed))
+			fmt.Println("isSolved", p.Tiles)
 			stats.Path = tracePath(current)
 			stats.PathLen = len(stats.Path)
-			stats.t = time.Since(start)
+			// stats.t = time.Since(start)
+			fmt.Println("at exit")
+			*p = current.puzzle.DeepCopy()
+			fmt.Println(p)
 			return
 		}
 
 		neighbours := allNeighbours(current, h)
-		// fmt.Printf("got %d neighbours\n", len(neighbours))
 		for _, n := range neighbours {
 			if _, ok := closed[n.hash()]; ok {
-				// fmt.Printf("hash: %s\nfor %v\n", n.hash(), n)
 				continue
 			}
 			index, ok := nodeIndex(n, open)
-			// if ok {
-			// 	fmt.Println("Found another path to the same state")
-			// }
 			if ok && n.g < open[index].g {
-				// fmt.Println("New path is shorter")
 				open[index] = n
-				// open[index].g = n.g
-				// open[index].parent = current
-				// if open[index].h != n.h {
-				// 	log.Fatal("h != h")
-				// }
 			} else if !ok {
 				open = append(open, n)
 				stats.TotalStates++

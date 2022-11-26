@@ -8,7 +8,6 @@ import (
 	"npuzzle/config"
 )
 
-// v2
 func main() {
 	cfg, err := config.Parse()
 	if err != nil {
@@ -27,7 +26,7 @@ func main() {
 		fmt.Println("Solved!")
 		return
 	}
-	stats := algorithm.AStar(*p, cfg.Heuristic.F)
+	stats := algorithm.Solve(p, cfg.Heuristic.F)
 	fmt.Println("Finished!")
 	fmt.Println(stats.Path[len(stats.Path)-1])
 	fmt.Println("Heuristics used:", cfg.Heuristic.Desc)
