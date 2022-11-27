@@ -30,7 +30,7 @@ func main() {
 	s := algorithm.Solver{
 		P:     p,
 		H:     cfg.Heuristic.F,
-		Debug: false,
+		Debug: true,
 	}
 	stats := s.Solve()
 

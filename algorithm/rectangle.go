@@ -7,7 +7,7 @@ type Rectangle struct {
 	botRight puzzle.Coordinates
 }
 
-func (r Rectangle) inRectangle(x, y int) bool {
+func (r Rectangle) contains(x, y int) bool {
 	return x >= r.topLeft.X && x <= r.botRight.X &&
 		y >= r.topLeft.Y && y <= r.botRight.Y
 }

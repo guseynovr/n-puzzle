@@ -3,7 +3,7 @@ package algorithm
 import (
 	"bufio"
 	"fmt"
-	"math"
+	"log"
 	"npuzzle/puzzle"
 	"os"
 	"time"
@@ -56,9 +56,19 @@ func (s Solver) Solve() Stats {
 		}
 	}
 	s.P.MakeAllRelevant()
+	s.debug("last section")
 	s.Stats = s.Stats.Append(AStar(s.P, s.H))
+	s.debug("at the end")
 	s.Stats.t = time.Since(start)
 	return s.Stats
+}
+
+func (s *Solver) LockLastPart() {
+	for y := s.P.Size - 2; y < s.P.Size; y++ {
+		for x := s.P.Size - 3; x < s.P.Size; x++ {
+			s.P.Tiles[y][x].Locked = true
+		}
+	}
 }
 
 func (s *Solver) moveItem(src, dst puzzle.Coordinates) {
@@ -97,6 +107,8 @@ func (s *Solver) moveZeroToPath(next puzzle.Coordinates) {
 func (s *Solver) makePath(src, dst puzzle.Coordinates) {
 	s.makeVerticalPath(src, dst)
 	s.makeHorizontalPath(src, dst)
+
+	fmt.Printf("ver %v, hor %v\n", s.Ver, s.Hor)
 }
 
 func (s *Solver) makeFinalPath(src, dst puzzle.Coordinates) {
@@ -115,7 +127,7 @@ func (s *Solver) makeFinalPath(src, dst puzzle.Coordinates) {
 func (s *Solver) lockPath() {
 	for y, row := range s.P.Tiles {
 		for x := range row {
-			if s.Ver.inRectangle(x, y) || s.Hor.inRectangle(x, y) {
+			if s.Ver.contains(x, y) || s.Hor.contains(x, y) {
 				continue
 			}
 			s.P.Tiles[y][x].Locked = true
@@ -165,6 +177,9 @@ func (s *Solver) makeHorizontalPath(src, dst puzzle.Coordinates) {
 	if src.Y-dst.Y < 1 {
 		s.Hor.topLeft.Y = dst.Y + 1
 	}
+	if src.Y == dst.Y {
+		s.Hor.topLeft.Y = src.Y
+	}
 
 	s.Hor.botRight.X = src.X
 	if dst.X > src.X {
@@ -187,23 +202,25 @@ func (s *Solver) debug(msg string) {
 func (s *Solver) zeroInPathPos(zero puzzle.Coordinates,
 	next puzzle.Coordinates) puzzle.Coordinates {
 
-	minDist := int(^uint(0) >> 1)
-	res := puzzle.Coordinates{}
-	for y, row := range s.P.Tiles {
-		for x := range row {
-			if x == next.X && y == next.Y {
-				continue
-			}
-			if s.Ver.inRectangle(x, y) || s.Hor.inRectangle(x, y) {
-				dist := int(
-					math.Abs(float64(zero.X-x)) +
-						math.Abs(float64(zero.Y-y))*10)
-				if dist < minDist {
-					minDist = dist
-					res = puzzle.Coordinates{x, y}
-				}
-			}
+	neighbours := []puzzle.Coordinates{}
+	if next.X > 0 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X - 1, next.Y})
+	}
+	if next.X < s.P.Size-1 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X + 1, next.Y})
+	}
+	if next.Y > 0 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y - 1})
+	}
+	if next.Y < s.P.Size-1 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y + 1})
+	}
+	for _, n := range neighbours {
+		if (s.Ver.contains(n.X, n.Y) || s.Hor.contains(n.X, n.Y)) &&
+			!s.P.Tiles[n.Y][n.X].Locked {
+			return n
 		}
 	}
-	return res
+	log.Fatal("zero pos inside path not found")
+	return puzzle.Coordinates{}
 }
