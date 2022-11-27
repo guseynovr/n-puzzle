@@ -22,10 +22,10 @@ func (s Stats) String() string {
 	sb.WriteString(fmt.Sprintf("Complexity in time: %d\n", s.TotalStates))
 	sb.WriteString(fmt.Sprintf("Complexity in size: %d\n", s.MaxStates))
 	sb.WriteString(fmt.Sprintf("Path len: %d\n", s.PathLen))
-	// sb.WriteString("Path sequence:\n")
-	// for _, st := range s.Path {
-	// 	sb.WriteString(st.String() + "\n")
-	// }
+	sb.WriteString("Path sequence:\n")
+	for _, st := range s.Path {
+		sb.WriteString(st.String() + "\n")
+	}
 	sb.WriteString("Time required: " + s.t.String())
 	return sb.String()
 }

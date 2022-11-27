@@ -5,6 +5,16 @@ import (
 	"strings"
 )
 
+const (
+	red   = "\033[%s1m"
+	green = "\033[%s2m"
+	// yellow = "\033[%d;33m"
+	reset = "\033[0m"
+
+	regular = "0;3"
+	blocked = "4"
+)
+
 type puzzleStringer struct {
 	sb         strings.Builder
 	width      int
@@ -24,7 +34,7 @@ String prints puzzle as a table.
 	└─┴─┴─┘
 */
 func (p Puzzle) String() string {
-	width := len(fmt.Sprint(p.Size*p.Size - 1))
+	width := len(fmt.Sprint(p.Size*p.Size-1, p.Tiles[0][0].Target))
 	horizontal := strings.Repeat("─", width)
 
 	ps := puzzleStringer{
@@ -48,12 +58,27 @@ func (p Puzzle) String() string {
 func (ps *puzzleStringer) writeRow(row []Tile) {
 	ps.sb.WriteRune('│')
 	for j, tile := range row {
-		ps.sb.WriteString(fmt.Sprintf("%*d", ps.width, tile.Value))
+		ps.writeValue(tile)
 		if j < ps.size-1 {
 			ps.sb.WriteRune('│')
 		}
 	}
 	ps.sb.WriteString("│\n")
+}
+
+func (ps *puzzleStringer) writeValue(tile Tile) {
+	color := red
+	tileType := regular
+
+	if tile.Relevant {
+		color = green
+	}
+	if tile.Locked {
+		tileType = blocked
+	}
+	color = fmt.Sprintf(color, tileType)
+	value := fmt.Sprintf("%d%v", tile.Value, tile.Target)
+	ps.sb.WriteString(fmt.Sprintf("%s%*s%s", color, ps.width, value, reset))
 }
 
 // "┌─┬─┐\n"

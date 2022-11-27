@@ -51,7 +51,10 @@ func (p *Puzzle) MakeAllIrrelevant() {
 
 func (p *Puzzle) MakeAllRelevant() {
 	for y, row := range p.Tiles {
-		for x := range row {
+		for x, t := range row {
+			if t.Value == 0 {
+				continue
+			}
 			p.Tiles[y][x].Relevant = true
 		}
 	}
@@ -66,5 +69,31 @@ func (p *Puzzle) GetPosition(i int) Coordinates {
 		}
 	}
 	log.Fatal("Requested unexistent tile: ", i)
+	return Coordinates{}
+}
+
+func (p *Puzzle) GetTile(pos Coordinates) Tile {
+	return p.Tiles[pos.Y][pos.X]
+}
+
+func (p *Puzzle) UnlockIrrelevant() {
+	for y, row := range p.Tiles {
+		for x, t := range row {
+			if !t.Relevant {
+				p.Tiles[y][x].Locked = false
+			}
+		}
+	}
+}
+
+func (p *Puzzle) GetTilePosWithTarget(target Coordinates) Coordinates {
+	for y, row := range p.Tiles {
+		for x, t := range row {
+			if t.Target == target {
+				return Coordinates{x, y}
+			}
+		}
+	}
+	log.Fatal("no such target")
 	return Coordinates{}
 }

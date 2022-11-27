@@ -22,9 +22,9 @@ func Manhattan(p puzzle.Puzzle) int {
 	for y, row := range p.Tiles {
 		for x, t := range row {
 			if t.Relevant {
-				result += int(
-					math.Abs(float64(x-t.Target.X)) +
-						math.Abs(float64(y-t.Target.Y))*10)
+				result += int(math.Round(
+					math.Abs(float64(x-t.Target.X))+
+						math.Abs(float64(y-t.Target.Y))) * 10)
 			}
 		}
 	}
@@ -36,10 +36,9 @@ func Euclidean(p puzzle.Puzzle) int {
 	for y, row := range p.Tiles {
 		for x, t := range row {
 			if t.Relevant {
-				result += int(
-					math.Sqrt(
-						math.Pow(float64(x-t.Target.X), 2)+
-							math.Pow(float64(y-t.Target.Y), 2)) * 10)
+				result += int(math.Sqrt(
+					math.Pow(float64(x-t.Target.X), 2)+
+						math.Pow(float64(y-t.Target.Y), 2)) * 10)
 			}
 		}
 	}

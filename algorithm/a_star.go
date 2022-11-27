@@ -1,44 +1,27 @@
 package algorithm
 
 import (
-	"bufio"
-	"fmt"
 	"log"
 	"npuzzle/puzzle"
-	"os"
 )
 
 func AStar(p *puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
-	// start := time.Now()
 	open := []*Node{}
 	closed := make(map[string]*Node)
 
 	open = append(open, newNode(*p, nil, h))
 	stats.MaxStates, stats.TotalStates = 1, 1
-	scanner := bufio.NewScanner(os.Stdin)
 
-	// current := open[0]
 	for len(open) != 0 {
 		if stats.MaxStates < len(open)+len(closed) {
 			stats.MaxStates = len(open) + len(closed)
 		}
 		current := popLowestF(&open)
 		closed[current.hash()] = current
-		fmt.Print(current.puzzle)
-		fmt.Println(current.g, current.h)
-		// fmt.Printf("open %d, closed %d\n", len(open), len(closed))
-		// time.Sleep(time.Second * 2)
-		if scanner.Scan() {
-			scanner.Text()
-		}
 		if current.puzzle.IsSolved() {
-			fmt.Println("isSolved", p.Tiles)
 			stats.Path = tracePath(current)
 			stats.PathLen = len(stats.Path)
-			// stats.t = time.Since(start)
-			fmt.Println("at exit")
 			*p = current.puzzle.DeepCopy()
-			fmt.Println(p)
 			return
 		}
 
@@ -48,7 +31,8 @@ func AStar(p *puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
 				continue
 			}
 			index, ok := nodeIndex(n, open)
-			if ok && n.g < open[index].g {
+			if ok && (n.g < open[index].g ||
+				n.f() == open[index].f() && n.h < open[index].h) {
 				open[index] = n
 			} else if !ok {
 				open = append(open, n)

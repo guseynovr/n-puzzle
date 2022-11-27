@@ -26,7 +26,14 @@ func main() {
 		fmt.Println("Solved!")
 		return
 	}
-	stats := algorithm.Solve(p, cfg.Heuristic.F)
+
+	s := algorithm.Solver{
+		P:     p,
+		H:     cfg.Heuristic.F,
+		Debug: false,
+	}
+	stats := s.Solve()
+
 	fmt.Println("Finished!")
 	fmt.Println(stats.Path[len(stats.Path)-1])
 	fmt.Println("Heuristics used:", cfg.Heuristic.Desc)
