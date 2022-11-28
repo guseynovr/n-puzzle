@@ -15,48 +15,27 @@ func (s Solver) Solve() Stats {
 	start := time.Now()
 	s.P.MakeAllIrrelevant()
 
-	y := 0
-	for ; y < s.P.Size-2; y++ {
-		for x := 0; x < s.P.Size; x++ {
-			src := s.P.GetTilePosWithTarget(puzzle.Coordinates{x, y})
-			dst := s.P.Tiles[src.Y][src.X].Target
+	for i := 0; i < s.P.Size*s.P.Size-8; i++ {
+		src := s.P.GetPosition(i)
+		dst := s.P.Tiles[src.Y][src.X].Target
 
-			s.makePath(src, dst)
+		s.makePath(src, dst)
+		s.debug(fmt.Sprintf("makePath: ver %v, hor %v\n", s.Ver, s.Hor))
 
-			s.moveZeroToPath(src)
-			s.debug("moveZeroToPath")
-			s.lockPath()
-			s.debug("lockPath")
+		s.moveZeroToPath(src)
+		s.debug("moveZeroToPath")
 
-			s.moveItem(src, dst)
-			s.debug("moveItem")
+		s.lockPath()
+		s.debug("lockPath")
 
-			s.unlockPath()
-			s.debug("unlockPath")
-		}
-	}
-	for x := 0; x < s.P.Size-3; x++ {
-		for y := y; y < s.P.Size; y++ {
-			src := s.P.GetTilePosWithTarget(puzzle.Coordinates{x, y})
-			dst := s.P.Tiles[src.Y][src.X].Target
+		s.moveItem(src, dst)
+		s.debug("moveItem")
 
-			s.makeFinalPath(src, dst)
-
-			s.moveZeroToPath(src)
-			s.debug("moveZeroToPath")
-
-			s.lockPath()
-			s.debug("lockPath")
-
-			s.moveItem(src, dst)
-			s.debug("moveItem")
-
-			s.unlockPath()
-			s.debug("unlockPath")
-		}
+		s.unlockPath()
+		s.debug("unlockPath")
 	}
 	s.P.MakeAllRelevant()
-	s.debug("last section")
+	s.debug("MakeAllRelevant")
 	s.Stats = s.Stats.Append(AStar(s.P, s.H))
 	s.debug("at the end")
 	s.Stats.t = time.Since(start)
@@ -73,25 +52,24 @@ func (s *Solver) LockLastPart() {
 
 func (s *Solver) moveItem(src, dst puzzle.Coordinates) {
 	s.P.Tiles[src.Y][src.X].Relevant = true
-	if dst.X == s.P.Size-1 && s.P.Tiles[dst.Y][dst.X-1].Locked {
-		s.P.Tiles[dst.Y][dst.X-1].Locked = false
-	}
-	if dst.Y == s.P.Size-1 {
-		s.P.Tiles[dst.Y-1][dst.X].Locked = false
-	}
+	// if dst.X == s.P.Size-1 && s.P.Tiles[dst.Y][dst.X-1].Locked {
+	// 	s.P.Tiles[dst.Y][dst.X-1].Locked = false
+	// }
+	// if dst.Y == s.P.Size-1 {
+	// 	s.P.Tiles[dst.Y-1][dst.X].Locked = false
+	// }
 	stats := AStar(s.P, s.H)
 	s.P.Tiles[dst.Y][dst.X].Locked = true
-	if dst.X == s.P.Size-1 {
-		s.P.Tiles[dst.Y][dst.X-1].Locked = true
-	}
-	if dst.Y == s.P.Size-1 {
-		s.P.Tiles[dst.Y-1][dst.X].Locked = true
-	}
+	// if dst.X == s.P.Size-1 {
+	// 	s.P.Tiles[dst.Y][dst.X-1].Locked = true
+	// }
+	// if dst.Y == s.P.Size-1 {
+	// 	s.P.Tiles[dst.Y-1][dst.X].Locked = true
+	// }
 	s.Stats = stats.Append(stats)
 }
 
 func (s *Solver) moveZeroToPath(next puzzle.Coordinates) {
-
 	s.P.Tiles[next.Y][next.X].Locked = true
 	zeroPos := s.zeroInPathPos(s.P.Zero, next)
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = zeroPos
@@ -105,32 +83,57 @@ func (s *Solver) moveZeroToPath(next puzzle.Coordinates) {
 }
 
 func (s *Solver) makePath(src, dst puzzle.Coordinates) {
-	s.makeVerticalPath(src, dst)
-	s.makeHorizontalPath(src, dst)
+	dir := s.determineDirection(src, dst)
+	s.makeVerticalPath(src, dst, dir)
+	s.makeHorizontalPath(src, dst, dir)
 
 	fmt.Printf("ver %v, hor %v\n", s.Ver, s.Hor)
 }
 
-func (s *Solver) makeFinalPath(src, dst puzzle.Coordinates) {
-
-	s.Hor.topLeft.X = dst.X
-	s.Hor.topLeft.Y = s.P.Size - 2
-
-	s.Hor.botRight.X = src.X
-	if src.X < 2 {
-		s.Hor.botRight.X = 2
+func (s *Solver) determineDirection(src, dst puzzle.Coordinates) string {
+	deltaX, deltaY := dst.X-src.X, dst.Y-src.Y
+	if deltaX < 0 && deltaY == 0 {
+		return "left"
+	} else if deltaX > 0 && deltaY == 0 {
+		return "right"
+	} else if deltaX == 0 && deltaY < 0 {
+		return "top"
+	} else if deltaX == 0 && deltaY > 0 {
+		return "bot"
+	} else if deltaX < 0 && deltaY < 0 {
+		return "topleft"
+	} else if deltaX > 0 && deltaY < 0 {
+		return "topright"
+	} else if deltaX > 0 && deltaY > 0 {
+		return "botright"
+	} else if deltaX < 0 && deltaY > 0 {
+		return "botleft"
 	}
-	s.Hor.botRight.Y = s.P.Size - 1
-	s.Ver = s.Hor
+	log.Fatal("impossible direction")
+	return ""
 }
+
+// func (s *Solver) makeFinalPath(src, dst puzzle.Coordinates) {
+
+// 	s.Hor.topLeft.X = dst.X
+// 	s.Hor.topLeft.Y = s.P.Size - 2
+
+// 	s.Hor.botRight.X = src.X
+// 	if src.X < 2 {
+// 		s.Hor.botRight.X = 2
+// 	}
+// 	s.Hor.botRight.Y = s.P.Size - 1
+// 	s.Ver = s.Hor
+// }
 
 func (s *Solver) lockPath() {
 	for y, row := range s.P.Tiles {
 		for x := range row {
 			if s.Ver.contains(x, y) || s.Hor.contains(x, y) {
-				continue
+				s.P.Tiles[y][x].Locked = false
+			} else {
+				s.P.Tiles[y][x].Locked = true
 			}
-			s.P.Tiles[y][x].Locked = true
 		}
 	}
 }
@@ -139,53 +142,52 @@ func (s *Solver) unlockPath() {
 	for y, row := range s.P.Tiles {
 		for x, t := range row {
 			if t.Relevant {
-				continue
+				s.P.Tiles[y][x].Locked = true
+			} else {
+				s.P.Tiles[y][x].Locked = false
 			}
-			s.P.Tiles[y][x].Locked = false
 		}
 	}
 }
 
-func (s *Solver) makeVerticalPath(src, dst puzzle.Coordinates) {
-
-	s.Ver.topLeft.X = dst.X
-	if dst.X == s.P.Size-1 {
-		s.Ver.topLeft.X = dst.X - 1
-	}
-	s.Ver.topLeft.Y = dst.Y
-
-	s.Ver.botRight.X = s.Ver.topLeft.X + 1
-	s.Ver.botRight.Y = src.Y
-	if src.Y-dst.Y < 2 {
-		s.Ver.botRight.Y = dst.Y + 2
+func (s *Solver) makeVerticalPath(src, dst puzzle.Coordinates, dir string) {
+	switch dir {
+	case "left":
+	case "right":
+	case "top":
+	case "bot":
+	case "topleft":
+	case "topright":
+	case "botright":
+	case "botleft":
 	}
 }
 
-func (s *Solver) makeHorizontalPath(src, dst puzzle.Coordinates) {
-
-	s.Hor.topLeft.X = dst.X
-	if dst.X > src.X {
-		s.Hor.topLeft.X = src.X
+func (s *Solver) makeHorizontalPath(src, dst puzzle.Coordinates, dir string) {
+	switch dir {
+	case "left":
+		s.Hor.topLeft = dst
+		s.Hor.botRight = src
+		if dst.Y == 0 || s.P.Tiles[dst.Y-1][dst.X].Locked {
+			s.Hor.botRight.Y++
+		} else {
+			s.Hor.topLeft.Y--
+		}
+	case "right":
+		s.Hor.topLeft = src
+		s.Hor.botRight = dst
+		if dst.Y == s.P.Size-1 || s.P.Tiles[dst.Y+1][dst.X].Locked {
+			s.Hor.topLeft.Y--
+		} else {
+			s.Hor.botRight.Y++
+		}
+	case "top":
+	case "bot":
+	case "topleft":
+	case "topright":
+	case "botright":
+	case "botleft":
 	}
-	if s.Hor.topLeft.X == s.P.Size-1 {
-		s.Hor.topLeft.X -= 1
-	}
-	s.Hor.topLeft.Y = src.Y - 1
-	if src.Y > 0 && s.P.Tiles[src.Y-1][src.X].Locked {
-		s.Hor.topLeft.Y = src.Y
-	}
-	if src.Y-dst.Y < 1 {
-		s.Hor.topLeft.Y = dst.Y + 1
-	}
-	if src.Y == dst.Y {
-		s.Hor.topLeft.Y = src.Y
-	}
-
-	s.Hor.botRight.X = src.X
-	if dst.X > src.X {
-		s.Hor.botRight.X = dst.X
-	}
-	s.Hor.botRight.Y = s.Hor.topLeft.Y + 1
 }
 
 func (s *Solver) debug(msg string) {
