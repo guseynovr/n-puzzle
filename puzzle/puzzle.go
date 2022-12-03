@@ -22,6 +22,7 @@ type Puzzle struct {
 	Size  int
 	Tiles [][]Tile
 	Zero  Coordinates
+	Next  int
 	// Target [][]int
 	hash string
 	// TargetXY map[int]Coordinates

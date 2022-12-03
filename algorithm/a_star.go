@@ -1,35 +1,43 @@
 package algorithm
 
 import (
+	"fmt"
 	"log"
 	"npuzzle/puzzle"
 )
 
-func AStar(p *puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
+func (s *Solver) AStar() (stats Stats) {
 	open := []*Node{}
 	closed := make(map[string]*Node)
 
-	open = append(open, newNode(*p, nil, h))
+	open = append(open, newNode(*s.P, nil, s.H))
 	stats.MaxStates, stats.TotalStates = 1, 1
 
 	for len(open) != 0 {
 		if stats.MaxStates < len(open)+len(closed) {
 			stats.MaxStates = len(open) + len(closed)
 		}
+		// fmt.Println("OPEN:", open)
 		current := popLowestF(&open)
+		// fmt.Println("CURRENT:", current)
+		// fmt.Println("OPEN AFTER POP:", open)
 		closed[current.hash()] = current
+		// s.debugAStar(current)
 		if current.puzzle.IsSolved() {
 			stats.Path = tracePath(current)
 			stats.PathLen = len(stats.Path)
-			*p = current.puzzle.DeepCopy()
+			*s.P = current.puzzle.DeepCopy()
 			return
 		}
 
-		neighbours := allNeighbours(current, h)
+		neighbours := allNeighbours(current, s.H)
 		for _, n := range neighbours {
+			// fmt.Println("closed:", closed)
 			if _, ok := closed[n.hash()]; ok {
+				// fmt.Println("REPEATED element")
 				continue
 			}
+			// fmt.Println("NEW element")
 			index, ok := nodeIndex(n, open)
 			if ok && (n.g < open[index].g ||
 				n.f() == open[index].f() && n.h < open[index].h) {
@@ -42,6 +50,16 @@ func AStar(p *puzzle.Puzzle, h func(puzzle.Puzzle) int) (stats Stats) {
 	}
 	log.Fatal("could not find the path, open set is empty")
 	return
+}
+
+func (s *Solver) debugAStar(node *Node) {
+	if !s.Debug {
+		return
+	}
+	fmt.Printf("AStar: g=%d, h=%d\n%s\n", node.g, node.h, node.puzzle)
+	if scanner.Scan() {
+		scanner.Text()
+	}
 }
 
 func nodeIndex(n *Node, slice []*Node) (int, bool) {
@@ -78,7 +96,8 @@ func popLowestF(open *[]*Node) *Node {
 	minH := int(^uint(0) >> 1)
 	index := 0
 	for i, n := range *open {
-		if n.f() < minF || n.f() == minF && n.h < minH {
+		// if n.f() < minF || (n.f() == minF && n.h < minH) {
+		if n.h < minH || (n.h == minH && n.f() < minF) {
 			minF = n.f()
 			minH = n.h
 			index = i

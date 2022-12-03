@@ -7,6 +7,7 @@ type Solver struct {
 	H     func(puzzle.Puzzle) int
 	Ver   Rectangle
 	Hor   Rectangle
+	Mid   puzzle.Coordinates
 	Stats Stats
 	Debug bool
 }

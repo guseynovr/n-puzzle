@@ -1,6 +1,9 @@
 package algorithm
 
-import "npuzzle/puzzle"
+import (
+	"fmt"
+	"npuzzle/puzzle"
+)
 
 type Node struct {
 	puzzle puzzle.Puzzle
@@ -27,4 +30,8 @@ func (n Node) f() int {
 
 func (n Node) hash() string {
 	return n.puzzle.Hash()
+}
+
+func (n Node) String() string {
+	return fmt.Sprintf("(g=%d,h=%d)", n.g, n.h)
 }
