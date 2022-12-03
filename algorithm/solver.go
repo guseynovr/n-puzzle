@@ -10,4 +10,6 @@ type Solver struct {
 	Mid   puzzle.Coordinates
 	Stats Stats
 	Debug bool
+	// corner bool
+	Corner Rectangle
 }

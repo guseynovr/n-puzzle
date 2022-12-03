@@ -18,7 +18,7 @@ func (s *Solver) AStar() (stats Stats) {
 			stats.MaxStates = len(open) + len(closed)
 		}
 		// fmt.Println("OPEN:", open)
-		current := popLowestF(&open)
+		current := s.popLowestF(&open)
 		// fmt.Println("CURRENT:", current)
 		// fmt.Println("OPEN AFTER POP:", open)
 		closed[current.hash()] = current
@@ -88,7 +88,7 @@ func allNeighbours(n *Node, h func(puzzle.Puzzle) int) []*Node {
 	return res
 }
 
-func popLowestF(open *[]*Node) *Node {
+func (s *Solver) popLowestF(open *[]*Node) *Node {
 	if len(*open) == 0 {
 		log.Fatal("empty open inside loop")
 	}

@@ -14,10 +14,12 @@ var scanner = bufio.NewScanner(os.Stdin)
 func (s Solver) Solve() Stats {
 	start := time.Now()
 	s.P.MakeAllIrrelevant()
+	inCorner := false
+	var prev puzzle.Coordinates
 
 	for i := 1; i < s.P.Size*s.P.Size-8; i++ {
 		s.P.Next = i
-		s.Mid = puzzle.Coordinates{-1, -1}
+		// s.Mid = puzzle.Coordinates{-1, -1}
 		src := s.P.GetPosition(i)
 		dst := s.P.Tiles[src.Y][src.X].Target
 
@@ -25,49 +27,48 @@ func (s Solver) Solve() Stats {
 			s.P.Tiles[src.Y][src.X].Locked = true
 			s.P.Tiles[src.Y][src.X].Relevant = true
 			s.debug("src=dst, continue")
+			prev = dst
 			continue
 		}
 
-		s.makePath(src, dst)
-		s.debug(fmt.Sprintf("makePath: ver %v, hor %v\n", s.Ver, s.Hor))
+		// s.makePath(src, dst)
+		// s.debug(fmt.Sprintf("makePath: ver %v, hor %v\n", s.Ver, s.Hor))
 
-		if s.Mid.X == -1 {
-			s.moveZeroToPath(src)
-			s.debug("moveZeroToPath")
+		s.moveZeroToNext(src)
+		s.debug("moveZeroToNext")
 
-			s.lockPath(true)
-			s.debug("lockPath")
-
-			s.moveItem(src, dst)
-			s.debug("moveItem")
-
-			s.unlockPath()
-			s.debug("unlockPath")
-			continue
+		// s.lockPath(true)
+		// s.debug("lockPath")
+		inCorner = s.inCorner(dst)
+		if inCorner {
+			s.P.Tiles[prev.Y][prev.X].Locked = false
+			s.makeCorner(dst)
+			fmt.Println("corner:", s.Corner)
+			s.debug("makeCorner")
+			dst2 := s.zeroInCorner(src, dst)
+			s.P.Tiles[src.Y][src.X].Target = dst2
+			s.debug(fmt.Sprintf("dst2:%v", dst2))
+			s.moveItem(src, dst2)
+			s.P.Tiles[dst2.Y][dst2.X].Target = dst
+			s.P.Tiles[dst2.Y][dst2.X].Locked = false
+			s.debug("moveItem to corner")
+			// s.moveZeroToNext(dst2)
+			// s.debug("moveZeroToNext")
+			s.lockCorner()
+			s.debug("lockCorner")
+			//movetocorner +move zero to corner
+			//lock corner
+			s.debug("inCorner")
+			src = dst2
 		}
 
-		s.moveZeroToPathMid(src, true)
-		s.debug("moveZeroToPath")
-
-		s.lockPath(true)
-		s.debug("lockPath")
-
-		s.P.Tiles[src.Y][src.X].Target = s.Mid
-		s.moveItem(src, s.Mid)
+		s.moveItem(src, dst)
 		s.debug("moveItem")
 
-		s.unlockPath()
-		s.debug("unlockPath")
-
-		s.moveZeroToPathMid(src, false)
-		s.debug("moveZeroToPath")
-
-		s.lockPath(false)
-		s.debug("lockPath")
-
-		s.P.Tiles[s.Mid.Y][s.Mid.X].Target = src
-		s.moveItem(s.Mid, dst)
-		s.debug("moveItem")
+		if inCorner {
+			s.P.Tiles[prev.Y][prev.X].Locked = true
+		}
+		prev = dst
 
 		s.unlockPath()
 		s.debug("unlockPath")
@@ -81,13 +82,29 @@ func (s Solver) Solve() Stats {
 	return s.Stats
 }
 
-// func (s *Solver) LockLastPart() {
-// 	for y := s.P.Size - 2; y < s.P.Size; y++ {
-// 		for x := s.P.Size - 3; x < s.P.Size; x++ {
-// 			s.P.Tiles[y][x].Locked = true
+func (s *Solver) makeCorner(dst puzzle.Coordinates) {
+	s.Corner.topLeft.X = dst.X - 2
+	s.Corner.topLeft.Y = dst.Y - 2
+	s.Corner.botRight.X = dst.X + 2
+	s.Corner.botRight.Y = dst.Y + 2
+}
+
+// func (s *Solver) lockCorner(corner puzzle.Coordinates) {
+// 	for y, row := range s.P.Tiles {
+// 		for x := range row {
+// 			if x - corner.X {
+// 				s.P.Tiles[y][x].Locked = true
+// 			}
 // 		}
 // 	}
 // }
+
+func (s *Solver) inCorner(dst puzzle.Coordinates) bool {
+	return ((dst.X == 0 || s.P.Tiles[dst.Y][dst.X-1].Locked) &&
+		(dst.X == s.P.Size-1 || s.P.Tiles[dst.Y][dst.X+1].Locked)) ||
+		((dst.Y == 0 || s.P.Tiles[dst.Y-1][dst.X].Locked) &&
+			(dst.Y == s.P.Size-1 || s.P.Tiles[dst.Y+1][dst.X].Locked))
+}
 
 func (s *Solver) moveItem(src, dst puzzle.Coordinates) {
 	s.P.Tiles[src.Y][src.X].Relevant = true
@@ -97,9 +114,9 @@ func (s *Solver) moveItem(src, dst puzzle.Coordinates) {
 	s.Stats = stats.Append(stats)
 }
 
-func (s *Solver) moveZeroToPathMid(next puzzle.Coordinates, ver bool) {
+func (s *Solver) moveZeroToNext(next puzzle.Coordinates) {
 	s.P.Tiles[next.Y][next.X].Locked = true
-	zeroPos := s.zeroInPathPosMid(s.P.Zero, next, ver)
+	zeroPos := s.zeroNearNext(s.P.Zero, next)
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = zeroPos
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = true
 	stats := s.AStar()
@@ -110,27 +127,11 @@ func (s *Solver) moveZeroToPathMid(next puzzle.Coordinates, ver bool) {
 	s.Stats = s.Stats.Append(stats)
 }
 
-func (s *Solver) moveZeroToPath(next puzzle.Coordinates) {
-	s.P.Tiles[next.Y][next.X].Locked = true
-	zeroPos := s.zeroInPathPos(s.P.Zero, next)
-	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = zeroPos
-	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = true
-	stats := s.AStar()
-	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = puzzle.Coordinates{-1, -1}
-	s.P.Tiles[next.Y][next.X].Locked = false
-	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = false
-
-	s.Stats = s.Stats.Append(stats)
-}
-
-func (s *Solver) lockPath(ver bool) {
+func (s *Solver) lockCorner() {
 	// fmt.Printf("lockPath tiles 0,0:%#v\n", s.P.Tiles[0][0])
 	for y, row := range s.P.Tiles {
 		for x := range row {
-			if (ver && s.Ver.contains(x, y)) || (!ver && s.Hor.contains(x, y)) ||
-				(s.Mid.X == x && s.Mid.Y == y) {
-				s.P.Tiles[y][x].Locked = false
-			} else {
+			if !s.Corner.contains(x, y) && !s.P.Tiles[y][x].Relevant {
 				s.P.Tiles[y][x].Locked = true
 			}
 		}
@@ -161,34 +162,20 @@ func (s *Solver) debug(msg string) {
 	}
 }
 
-func (s *Solver) zeroInPathPosMid(zero puzzle.Coordinates,
-	next puzzle.Coordinates, ver bool) puzzle.Coordinates {
+func (s *Solver) moveZeroToCorner(next puzzle.Coordinates) {
+	s.P.Tiles[next.Y][next.X].Locked = true
+	zeroPos := s.zeroInCorner(s.P.Zero, next)
+	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = zeroPos
+	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = true
+	stats := s.AStar()
+	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = puzzle.Coordinates{-1, -1}
+	s.P.Tiles[next.Y][next.X].Locked = false
+	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = false
 
-	neighbours := []puzzle.Coordinates{}
-	if next.X > 0 {
-		neighbours = append(neighbours, puzzle.Coordinates{next.X - 1, next.Y})
-	}
-	if next.X < s.P.Size-1 {
-		neighbours = append(neighbours, puzzle.Coordinates{next.X + 1, next.Y})
-	}
-	if next.Y > 0 {
-		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y - 1})
-	}
-	if next.Y < s.P.Size-1 {
-		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y + 1})
-	}
-	for _, n := range neighbours {
-		if ((ver && s.Ver.contains(n.X, n.Y)) ||
-			(!ver && s.Hor.contains(n.X, n.Y))) &&
-			!s.P.Tiles[n.Y][n.X].Locked {
-			return n
-		}
-	}
-	log.Fatal("zero pos inside path not found")
-	return puzzle.Coordinates{}
+	s.Stats = s.Stats.Append(stats)
 }
 
-func (s *Solver) zeroInPathPos(zero puzzle.Coordinates,
+func (s *Solver) zeroInCorner(zero puzzle.Coordinates,
 	next puzzle.Coordinates) puzzle.Coordinates {
 
 	neighbours := []puzzle.Coordinates{}
@@ -205,8 +192,35 @@ func (s *Solver) zeroInPathPos(zero puzzle.Coordinates,
 		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y + 1})
 	}
 	for _, n := range neighbours {
-		if (s.Ver.contains(n.X, n.Y) || s.Hor.contains(n.X, n.Y)) &&
-			!s.P.Tiles[n.Y][n.X].Locked {
+		if s.Corner.contains(n.X, n.Y) && !s.P.Tiles[n.Y][n.X].Locked &&
+			!s.P.Tiles[n.Y][n.X].Relevant {
+			return n
+		}
+	}
+
+	log.Fatalf("zero pos inside path not found: zero=%v, next=%v\n", zero, next)
+	return puzzle.Coordinates{}
+}
+
+func (s *Solver) zeroNearNext(zero puzzle.Coordinates,
+	next puzzle.Coordinates) puzzle.Coordinates {
+
+	neighbours := []puzzle.Coordinates{}
+	if next.X > 0 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X - 1, next.Y})
+	}
+	if next.X < s.P.Size-1 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X + 1, next.Y})
+	}
+	if next.Y > 0 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y - 1})
+	}
+	if next.Y < s.P.Size-1 {
+		neighbours = append(neighbours, puzzle.Coordinates{next.X, next.Y + 1})
+	}
+	for _, n := range neighbours {
+		// if (s.Ver.contains(n.X, n.Y) || s.Hor.contains(n.X, n.Y)) &&
+		if !s.P.Tiles[n.Y][n.X].Locked {
 			return n
 		}
 	}
