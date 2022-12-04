@@ -17,34 +17,29 @@ func (s *Solver) AStar() (stats Stats) {
 		if stats.MaxStates < len(open)+len(closed) {
 			stats.MaxStates = len(open) + len(closed)
 		}
-		// fmt.Println("OPEN:", open)
 		current := s.popLowestF(&open)
-		// fmt.Println("CURRENT:", current)
-		// fmt.Println("OPEN AFTER POP:", open)
+		stats.TotalStates++
 		closed[current.hash()] = current
-		// s.debugAStar(current)
+		s.debugAStar(current)
 		if current.puzzle.IsSolved() {
 			stats.Path = tracePath(current)
 			stats.PathLen = len(stats.Path)
-			*s.P = current.puzzle.DeepCopy()
+			*s.P = current.puzzle
 			return
 		}
 
-		neighbours := allNeighbours(current, s.H)
+		neighbours := getNeighbours(current, s.H)
 		for _, n := range neighbours {
-			// fmt.Println("closed:", closed)
 			if _, ok := closed[n.hash()]; ok {
-				// fmt.Println("REPEATED element")
 				continue
 			}
-			// fmt.Println("NEW element")
 			index, ok := nodeIndex(n, open)
-			if ok && (n.g < open[index].g ||
-				n.f() == open[index].f() && n.h < open[index].h) {
+			// if ok && (n.g < open[index].g ||
+			// 	n.f() == open[index].f() && n.h < open[index].h) {
+			if ok && n.g < open[index].g {
 				open[index] = n
 			} else if !ok {
 				open = append(open, n)
-				stats.TotalStates++
 			}
 		}
 	}
@@ -71,7 +66,7 @@ func nodeIndex(n *Node, slice []*Node) (int, bool) {
 	return 0, false
 }
 
-func allNeighbours(n *Node, h func(puzzle.Puzzle) int) []*Node {
+func getNeighbours(n *Node, h func(puzzle.Puzzle) int) []*Node {
 	res := []*Node{}
 	if left, err := n.puzzle.FilledFromLeft(); err == nil {
 		res = append(res, newNode(left, n, h))
@@ -96,8 +91,8 @@ func (s *Solver) popLowestF(open *[]*Node) *Node {
 	minH := int(^uint(0) >> 1)
 	index := 0
 	for i, n := range *open {
-		// if n.f() < minF || (n.f() == minF && n.h < minH) {
-		if n.h < minH || (n.h == minH && n.f() < minF) {
+		if (!s.ByH && (n.f() < minF || (n.f() == minF && n.h < minH))) ||
+			(s.ByH && (n.h < minH || (n.h == minH && n.f() < minF))) {
 			minF = n.f()
 			minH = n.h
 			index = i
@@ -105,6 +100,7 @@ func (s *Solver) popLowestF(open *[]*Node) *Node {
 	}
 	result := (*open)[index]
 	(*open)[index] = (*open)[len(*open)-1]
+	(*open)[len(*open)-1] = nil
 	*open = (*open)[:len(*open)-1]
 	return result
 }

@@ -31,6 +31,8 @@ func (s Stats) String() string {
 }
 
 func (s Stats) Append(s2 Stats) Stats {
+	fmt.Printf("append: Total=%d, Max=%d, PathLen=%d\n",
+		s2.TotalStates, s2.MaxStates, s2.PathLen)
 	return Stats{
 		TotalStates: s.TotalStates + s2.TotalStates,
 		MaxStates:   s.MaxStates + s2.MaxStates,
