@@ -1,23 +1,28 @@
 package algorithm
 
 import (
+	"container/heap"
 	"fmt"
 	"log"
 	"npuzzle/puzzle"
 )
 
 func (s *Solver) AStar() (stats Stats) {
-	open := []*Node{}
+	// open := []*Node{}
+	open := &NodeQueue{byH: s.ByH}
 	closed := make(map[string]*Node)
 
-	open = append(open, newNode(*s.P, nil, s.H))
+	// open = append(open, newNode(*s.P, nil, s.H))
+	heap.Push(open, newNode(*s.P, nil, s.H))
+	heap.Init(open)
 	stats.MaxStates, stats.TotalStates = 1, 1
 
-	for len(open) != 0 {
-		if stats.MaxStates < len(open)+len(closed) {
-			stats.MaxStates = len(open) + len(closed)
+	for open.Len() != 0 {
+		if stats.MaxStates < open.Len()+len(closed) {
+			stats.MaxStates = open.Len() + len(closed)
 		}
-		current := s.popLowestF(&open)
+		// current := s.popLowestF(&open)
+		current := heap.Pop(open).(*Node)
 		stats.TotalStates++
 		closed[current.hash()] = current
 		// s.debugAStar(current)
@@ -33,15 +38,19 @@ func (s *Solver) AStar() (stats Stats) {
 			if _, ok := closed[n.hash()]; ok {
 				continue
 			}
-			index, ok := nodeIndex(n, open)
+			// index, ok := nodeIndex(n, open)
+			index, ok := open.index(n)
 			// if ok && (n.g < open[index].g ||
 			// 	n.f() == open[index].f() && n.h < open[index].h) {
-			if ok && n.g < open[index].g {
-				open[index] = n
+			if ok && n.g < open.nodes[index].g {
+				open.nodes[index] = n
+				heap.Fix(open, index)
 			} else if !ok {
-				open = append(open, n)
+				// open = append(open, n)
+				heap.Push(open, n)
 			}
 		}
+		heap.Init(open)
 	}
 	log.Fatal("could not find the path, open set is empty")
 	return

@@ -1,34 +1,45 @@
 package algorithm
 
-type NodeQueue []*Node
-
-func (q NodeQueue) Len() int {
-	return len(q)
+type NodeQueue struct {
+	nodes []*Node
+	byH   bool
 }
 
-func (q NodeQueue) Less(i, j int) bool {
-	return q[i].f() < q[j].f()
+func (q *NodeQueue) Len() int {
+	return len(q.nodes)
 }
 
-func (q NodeQueue) Swap(i, j int) {
-	q[i], q[j] = q[j], q[i]
+func (q *NodeQueue) Less(i, j int) bool {
+	return (!q.byH &&
+		(q.nodes[i].f() < q.nodes[j].f() ||
+			(q.nodes[i].f() == q.nodes[j].f() &&
+				q.nodes[i].h < q.nodes[j].h))) ||
+		(q.byH &&
+			(q.nodes[i].h < q.nodes[j].h ||
+				(q.nodes[i].h == q.nodes[j].h &&
+					q.nodes[i].f() < q.nodes[j].f())))
+}
+
+func (q *NodeQueue) Swap(i, j int) {
+	q.nodes[i], q.nodes[j] = q.nodes[j], q.nodes[i]
 }
 
 func (q *NodeQueue) Push(n any) {
-	*q = append(*q, n.(*Node))
+	q.nodes = append(q.nodes, n.(*Node))
 }
 
 func (q *NodeQueue) Pop() any {
-	if len(*q) == 0 {
+	if len(q.nodes) == 0 {
 		return nil
 	}
-	last := (*q)[len(*q)-1]
-	*q = (*q)[0 : len(*q)-1]
+	last := q.nodes[len(q.nodes)-1]
+	q.nodes[len(q.nodes)-1] = nil
+	q.nodes = q.nodes[0 : len(q.nodes)-1]
 	return last
 }
 
-func (q *NodeQueue) Index(node *Node) (int, bool) {
-	for i, n := range *q {
+func (q *NodeQueue) index(node *Node) (int, bool) {
+	for i, n := range q.nodes {
 		if n.hash() == node.hash() {
 			return i, true
 		}
