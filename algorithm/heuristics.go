@@ -66,6 +66,35 @@ func Euclidean(p puzzle.Puzzle) int {
 	return result
 }
 
+func Diagonal(p puzzle.Puzzle) int {
+	result := 0
+	var nextPos puzzle.Coordinates
+	diagDist := math.Sqrt(200)
+	//dx = abs(current_cell.x – goal.x)
+	// dy = abs(current_cell.y – goal.y)
+	// h = D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
+	for y, row := range p.Tiles {
+		for x, t := range row {
+			if t.Relevant {
+				dx := math.Abs(float64(x - t.Target.X))
+				dy := math.Abs(float64(y - t.Target.Y))
+				min := dx
+				if dy < dx {
+					min = dy
+				}
+				result += int(10*(dx+dy) + (diagDist-20)*min)
+			}
+			if t.Value == p.Next {
+				nextPos = puzzle.Coordinates{x, y}
+			}
+		}
+	}
+	if p.Next > 0 {
+		result += penalty(p.Zero, nextPos)
+	}
+	return result
+}
+
 func penalty(zeroPos, nextPos puzzle.Coordinates) int {
 	// for y := -1; y < 2; y++ {
 	// 	for x := -1; x < 2; x++ {

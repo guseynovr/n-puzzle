@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"npuzzle/algorithm"
 	"npuzzle/puzzle"
@@ -12,7 +13,10 @@ import (
 type Config struct {
 	random    size
 	file      string
+	Pause     time.Duration
+	Blocks    bool
 	Heuristic heuristic
+	Debug     bool
 }
 
 func Parse() (*Config, error) {
@@ -26,7 +30,11 @@ func Parse() (*Config, error) {
 		heuristic{
 			F:    algorithm.Manhattan,
 			Desc: "manhattan",
-		}, "`heuristics` to be used: Manhattan, Euclidean, Out-of-place")
+		}, "`heuristics` to be used: Manhattan, Euclidean, Diagonal, Tiles")
+	fs.DurationVar(&cfg.Pause, "p", time.Millisecond*200,
+		"pause between steps in animation in `milliseconds`")
+	fs.BoolVar(&cfg.Blocks, "b", false, "show blocks")
+	fs.BoolVar(&cfg.Debug, "debug", false, "use debug pauses and logs")
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		return nil, err
 	}
@@ -37,8 +45,14 @@ func Parse() (*Config, error) {
 }
 
 func (c Config) Forge() (*puzzle.Puzzle, error) {
+	var res *puzzle.Puzzle
 	if c.random > 0 {
-		return puzzle.Random(int(c.random)), nil
+		res = puzzle.Random(int(c.random))
 	}
-	return puzzle.Parse(c.file)
+	res, err := puzzle.Parse(c.file)
+	if err != nil {
+		return nil, err
+	}
+	res.Blocks = c.Blocks
+	return res, nil
 }

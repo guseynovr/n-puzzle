@@ -32,7 +32,7 @@ func main() {
 	s := algorithm.Solver{
 		P:     p,
 		H:     cfg.Heuristic.F,
-		Debug: false,
+		Debug: cfg.Debug,
 		ByH:   true,
 	}
 	stats := s.Solve()
@@ -43,11 +43,12 @@ func main() {
 	fmt.Println(stats)
 
 	ch := make(chan struct{})
-	go animatePath(ch, p.Size, stats.Path)
+	go animatePath(ch, p.Size, stats.Path, cfg.Pause)
 	<-ch
 }
 
-func animatePath(ch chan struct{}, size int, path []puzzle.Puzzle) {
+func animatePath(ch chan struct{}, size int, path []puzzle.Puzzle,
+	pause time.Duration) {
 	nlines := size*2 + 2
 
 	fmt.Printf("\033[%dS", nlines) // scroll up to make room for output
@@ -56,9 +57,8 @@ func animatePath(ch chan struct{}, size int, path []puzzle.Puzzle) {
 
 	for i, step := range path {
 		fmt.Print("\033[u") // restore saved cursor position
-		// fmt.Println("Step", i)
 		fmt.Println(step, "Step:", i)
-		time.Sleep(time.Millisecond * 50)
+		time.Sleep(pause)
 	}
 	ch <- struct{}{}
 }

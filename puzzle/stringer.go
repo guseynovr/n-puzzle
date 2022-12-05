@@ -21,6 +21,7 @@ type puzzleStringer struct {
 	width      int
 	horizontal string
 	size       int
+	blocks     bool
 }
 
 /*
@@ -43,6 +44,7 @@ func (p Puzzle) String() string {
 		width:      width,
 		horizontal: horizontal,
 		size:       p.Size,
+		blocks:     p.Blocks,
 	}
 	ps.writeTopLine()
 	for i, row := range p.Tiles {
@@ -74,7 +76,7 @@ func (ps *puzzleStringer) writeValue(tile Tile) {
 	if tile.Relevant {
 		color = green
 	}
-	if tile.Locked {
+	if ps.blocks && tile.Locked {
 		tileType = blocked
 	}
 	if tile.Value == 0 {

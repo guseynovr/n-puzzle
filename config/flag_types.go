@@ -39,15 +39,20 @@ func (h *heuristic) UnmarshalText(text []byte) error {
 			F:    algorithm.Manhattan,
 			Desc: "manhattan",
 		}
-	case "out-of-place":
+	case "tiles":
 		*h = heuristic{
 			F:    algorithm.OutOfPlace,
-			Desc: "out-of-place",
+			Desc: "tiles",
 		}
 	case "euclidean":
 		*h = heuristic{
 			F:    algorithm.Euclidean,
 			Desc: "euclidean",
+		}
+	case "diagonal":
+		*h = heuristic{
+			F:    algorithm.Diagonal,
+			Desc: "diagonal",
 		}
 	default:
 		return fmt.Errorf("unsupported heuristic: %s", text)

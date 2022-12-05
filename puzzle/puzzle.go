@@ -24,7 +24,8 @@ type Puzzle struct {
 	Zero  Coordinates
 	Next  int
 	// Target [][]int
-	hash string
+	hash   string
+	Blocks bool
 	// TargetXY map[int]Coordinates
 }
 
