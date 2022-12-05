@@ -81,13 +81,3 @@ func (p Puzzle) FilledFromBelow() (Puzzle, error) {
 	err := p.FillFromBelow()
 	return p, err
 }
-
-func (p *Puzzle) DeepCopy() Puzzle {
-	pCopy := *p
-	pCopy.Tiles = make([][]Tile, p.Size)
-	for i := range pCopy.Tiles {
-		pCopy.Tiles[i] = make([]Tile, p.Size)
-		copy(pCopy.Tiles[i], p.Tiles[i])
-	}
-	return pCopy
-}

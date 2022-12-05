@@ -20,7 +20,7 @@ func (s *Solver) AStar() (stats Stats) {
 		current := s.popLowestF(&open)
 		stats.TotalStates++
 		closed[current.hash()] = current
-		s.debugAStar(current)
+		// s.debugAStar(current)
 		if current.puzzle.IsSolved() {
 			stats.Path = tracePath(current)
 			stats.PathLen = len(stats.Path)

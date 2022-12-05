@@ -31,12 +31,16 @@ func (s Stats) String() string {
 }
 
 func (s Stats) Append(s2 Stats) Stats {
-	fmt.Printf("append: Total=%d, Max=%d, PathLen=%d\n",
-		s2.TotalStates, s2.MaxStates, s2.PathLen)
+	// fmt.Printf("append: Total=%d, Max=%d, PathLen=%d\n",
+	// 	s2.TotalStates, s2.MaxStates, s2.PathLen)
+	maxStates := s.MaxStates
+	if s2.MaxStates > maxStates {
+		maxStates = s2.MaxStates
+	}
 	return Stats{
 		TotalStates: s.TotalStates + s2.TotalStates,
-		MaxStates:   s.MaxStates + s2.MaxStates,
-		PathLen:     s.PathLen + s2.PathLen,
+		MaxStates:   maxStates,
+		PathLen:     s.PathLen + s2.PathLen - 1,
 		Path:        append(s.Path, s2.Path...),
 	}
 }

@@ -58,3 +58,13 @@ func (p *Puzzle) Hash() string {
 func (p *Puzzle) updateHash() {
 	p.hash = fmt.Sprintf("%d%v%v", p.Size, p.Zero, p.Tiles)
 }
+
+func (p *Puzzle) DeepCopy() Puzzle {
+	pCopy := *p
+	pCopy.Tiles = make([][]Tile, p.Size)
+	for i := range pCopy.Tiles {
+		pCopy.Tiles[i] = make([]Tile, p.Size)
+		copy(pCopy.Tiles[i], p.Tiles[i])
+	}
+	return pCopy
+}

@@ -65,12 +65,15 @@ func (s Solver) Solve() Stats {
 		s.unlockPath()
 		s.debug("unlockPath")
 	}
+	s.ByH = false
 	s.P.Next = 0
 	s.P.MakeAllRelevant()
 	s.debug("MakeAllRelevant")
 	s.Stats = s.Stats.Append(s.AStar())
+	s.Stats.PathLen++
 	s.debug("at the end")
 	s.Stats.t = time.Since(start)
+	s.Stats.PathLen--
 	return s.Stats
 }
 
@@ -91,9 +94,9 @@ func (s *Solver) inCorner(dst puzzle.Coordinates) bool {
 func (s *Solver) moveItem(src, dst puzzle.Coordinates) {
 	s.P.Tiles[src.Y][src.X].Relevant = true
 	// fmt.Printf("moveItem: src=%v, dst%v\n", src, dst)
-	stats := s.AStar()
+	s.Stats = s.Stats.Append(s.AStar())
+	s.Stats.Path = s.Stats.Path[:len(s.Stats.Path)-1]
 	s.P.Tiles[dst.Y][dst.X].Locked = true
-	s.Stats = stats.Append(stats)
 }
 
 func (s *Solver) moveZeroToNext(next puzzle.Coordinates) {
@@ -101,12 +104,11 @@ func (s *Solver) moveZeroToNext(next puzzle.Coordinates) {
 	zeroPos := s.zeroNearNext(s.P.Zero, next)
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = zeroPos
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = true
-	stats := s.AStar()
+	s.Stats = s.Stats.Append(s.AStar())
+	s.Stats.Path = s.Stats.Path[:len(s.Stats.Path)-1]
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = puzzle.Coordinates{-1, -1}
 	s.P.Tiles[next.Y][next.X].Locked = false
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = false
-
-	s.Stats = s.Stats.Append(stats)
 }
 
 func (s *Solver) lockCorner() {
@@ -152,6 +154,7 @@ func (s *Solver) moveZeroToCorner(next puzzle.Coordinates) {
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = true
 	// fmt.Printf("zero %#v\n", s.P.Tiles[s.P.Zero.Y][s.P.Zero.X])
 	stats := s.AStar()
+	s.Stats.Path = s.Stats.Path[:len(s.Stats.Path)-1]
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = puzzle.Coordinates{-1, -1}
 	s.P.Tiles[next.Y][next.X].Locked = false
 	s.P.Tiles[next.Y][next.X].Relevant = true

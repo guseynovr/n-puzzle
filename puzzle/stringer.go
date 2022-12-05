@@ -6,10 +6,11 @@ import (
 )
 
 const (
-	red   = "\033[%s1m"
-	green = "\033[%s2m"
-	// yellow = "\033[%d;33m"
-	reset = "\033[0m"
+	red    = "\033[%s1m"
+	green  = "\033[%s2m"
+	yellow = "\033[%s3m"
+	blue   = "\033[%s4m"
+	reset  = "\033[0m"
 
 	regular = "0;3"
 	blocked = "4"
@@ -34,7 +35,7 @@ String prints puzzle as a table.
 	└─┴─┴─┘
 */
 func (p Puzzle) String() string {
-	width := len(fmt.Sprint(p.Size*p.Size-1, p.Tiles[0][0].Target))
+	width := len(fmt.Sprint(p.Size*p.Size - 1 /* , p.Tiles[0][0].Target */))
 	horizontal := strings.Repeat("─", width)
 
 	ps := puzzleStringer{
@@ -76,8 +77,12 @@ func (ps *puzzleStringer) writeValue(tile Tile) {
 	if tile.Locked {
 		tileType = blocked
 	}
+	if tile.Value == 0 {
+		color = yellow
+	}
 	color = fmt.Sprintf(color, tileType)
-	value := fmt.Sprintf("%d%v", tile.Value, tile.Target)
+	// value := fmt.Sprintf("%d%v", tile.Value, tile.Target)
+	value := fmt.Sprintf("%d", tile.Value)
 	ps.sb.WriteString(fmt.Sprintf("%s%*s%s", color, ps.width, value, reset))
 }
 
