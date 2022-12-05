@@ -41,17 +41,22 @@ func Parse() (*Config, error) {
 	if cfg.random != 0 && cfg.file != "" {
 		return nil, fmt.Errorf("-f and -r are mutually exclusive")
 	}
+	if cfg.Debug && cfg.file == "" {
+		return nil, fmt.Errorf("debug can't be used when reading from stdin")
+	}
 	return &cfg, nil
 }
 
 func (c Config) Forge() (*puzzle.Puzzle, error) {
 	var res *puzzle.Puzzle
+	var err error
 	if c.random > 0 {
 		res = puzzle.Random(int(c.random))
-	}
-	res, err := puzzle.Parse(c.file)
-	if err != nil {
-		return nil, err
+	} else {
+		res, err = puzzle.Parse(c.file)
+		if err != nil {
+			return nil, err
+		}
 	}
 	res.Blocks = c.Blocks
 	return res, nil

@@ -70,9 +70,6 @@ func Diagonal(p puzzle.Puzzle) int {
 	result := 0
 	var nextPos puzzle.Coordinates
 	diagDist := math.Sqrt(200)
-	//dx = abs(current_cell.x – goal.x)
-	// dy = abs(current_cell.y – goal.y)
-	// h = D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
 	for y, row := range p.Tiles {
 		for x, t := range row {
 			if t.Relevant {
@@ -96,13 +93,6 @@ func Diagonal(p puzzle.Puzzle) int {
 }
 
 func penalty(zeroPos, nextPos puzzle.Coordinates) int {
-	// for y := -1; y < 2; y++ {
-	// 	for x := -1; x < 2; x++ {
-	// 		if nextPos.X+x == zeroPos.X && nextPos.Y+y == zeroPos.Y {
-	// 			return 0
-	// 		}
-	// 	}
-	// }
 	zeroDist := int(math.Round(
 		math.Abs(float64(zeroPos.X-nextPos.X))+
 			math.Abs(float64(zeroPos.Y-nextPos.Y))) * 10)

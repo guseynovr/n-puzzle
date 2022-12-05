@@ -1,18 +1,20 @@
 package algorithm
 
 import (
+	"bufio"
 	"container/heap"
 	"fmt"
 	"log"
 	"npuzzle/puzzle"
+	"os"
 )
 
+var scanner = bufio.NewScanner(os.Stdin)
+
 func (s *Solver) AStar() (stats Stats) {
-	// open := []*Node{}
 	open := &NodeQueue{byH: s.ByH}
 	closed := make(map[string]*Node)
 
-	// open = append(open, newNode(*s.P, nil, s.H))
 	heap.Push(open, newNode(*s.P, nil, s.H))
 	heap.Init(open)
 	stats.MaxStates, stats.TotalStates = 1, 1
@@ -21,7 +23,6 @@ func (s *Solver) AStar() (stats Stats) {
 		if stats.MaxStates < open.Len()+len(closed) {
 			stats.MaxStates = open.Len() + len(closed)
 		}
-		// current := s.popLowestF(&open)
 		current := heap.Pop(open).(*Node)
 		stats.TotalStates++
 		closed[current.hash()] = current
@@ -38,15 +39,11 @@ func (s *Solver) AStar() (stats Stats) {
 			if _, ok := closed[n.hash()]; ok {
 				continue
 			}
-			// index, ok := nodeIndex(n, open)
 			index, ok := open.index(n)
-			// if ok && (n.g < open[index].g ||
-			// 	n.f() == open[index].f() && n.h < open[index].h) {
 			if ok && n.g < open.nodes[index].g {
 				open.nodes[index] = n
 				heap.Fix(open, index)
 			} else if !ok {
-				// open = append(open, n)
 				heap.Push(open, n)
 			}
 		}

@@ -1,17 +1,13 @@
 package algorithm
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"math"
 	"npuzzle/puzzle"
-	"os"
 	"sort"
 	"time"
 )
-
-var scanner = bufio.NewScanner(os.Stdin)
 
 func (s Solver) Solve() Stats {
 	start := time.Now()
@@ -93,7 +89,6 @@ func (s *Solver) inCorner(dst puzzle.Coordinates) bool {
 
 func (s *Solver) moveItem(src, dst puzzle.Coordinates) {
 	s.P.Tiles[src.Y][src.X].Relevant = true
-	// fmt.Printf("moveItem: src=%v, dst%v\n", src, dst)
 	s.Stats = s.Stats.Append(s.AStar())
 	s.Stats.Path = s.Stats.Path[:len(s.Stats.Path)-1]
 	s.P.Tiles[dst.Y][dst.X].Locked = true
@@ -152,7 +147,6 @@ func (s *Solver) moveZeroToCorner(next puzzle.Coordinates) {
 	zeroPos := s.zeroInCorner(s.P.Zero, next)
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = zeroPos
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Relevant = true
-	// fmt.Printf("zero %#v\n", s.P.Tiles[s.P.Zero.Y][s.P.Zero.X])
 	stats := s.AStar()
 	s.Stats.Path = s.Stats.Path[:len(s.Stats.Path)-1]
 	s.P.Tiles[s.P.Zero.Y][s.P.Zero.X].Target = puzzle.Coordinates{-1, -1}
@@ -225,7 +219,6 @@ func (s *Solver) zeroNearNext(zero puzzle.Coordinates,
 		return d1 < d2
 	})
 	for _, n := range neighbours {
-		// if (s.Ver.contains(n.X, n.Y) || s.Hor.contains(n.X, n.Y)) &&
 		if !s.P.Tiles[n.Y][n.X].Locked {
 			return n
 		}

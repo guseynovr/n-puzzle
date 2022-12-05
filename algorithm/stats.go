@@ -31,8 +31,6 @@ func (s Stats) String() string {
 }
 
 func (s Stats) Append(s2 Stats) Stats {
-	// fmt.Printf("append: Total=%d, Max=%d, PathLen=%d\n",
-	// 	s2.TotalStates, s2.MaxStates, s2.PathLen)
 	maxStates := s.MaxStates
 	if s2.MaxStates > maxStates {
 		maxStates = s2.MaxStates

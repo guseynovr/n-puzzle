@@ -19,14 +19,12 @@ type Coordinates struct {
 }
 
 type Puzzle struct {
-	Size  int
-	Tiles [][]Tile
-	Zero  Coordinates
-	Next  int
-	// Target [][]int
+	Size   int
+	Tiles  [][]Tile
+	Zero   Coordinates
+	Next   int
 	hash   string
 	Blocks bool
-	// TargetXY map[int]Coordinates
 }
 
 func newPuzzle(size, x, y int, tiles [][]int) *Puzzle {
