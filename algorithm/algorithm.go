@@ -12,54 +12,10 @@ import (
 func (s Solver) Solve() Stats {
 	start := time.Now()
 	s.P.MakeAllIrrelevant()
-	inCorner := false
 	var prev puzzle.Coordinates
 
 	for i := 1; i < s.P.Size*s.P.Size-8; i++ {
-		s.P.Next = i
-		src := s.P.GetPosition(i)
-		dst := s.P.Tiles[src.Y][src.X].Target
-
-		if src == dst {
-			s.P.Tiles[src.Y][src.X].Locked = true
-			s.P.Tiles[src.Y][src.X].Relevant = true
-			s.debug("src=dst, continue")
-			prev = dst
-			continue
-		}
-
-		s.moveZeroToNext(src)
-		s.debug("moveZeroToNext")
-
-		inCorner = s.inCorner(dst)
-		if inCorner {
-			s.P.Tiles[prev.Y][prev.X].Locked = false
-			s.makeCorner(dst)
-			s.debug(fmt.Sprintln("makeCorner:", s.Corner))
-			dst2 := s.zeroInCorner(src, dst)
-			s.P.Tiles[src.Y][src.X].Target = dst2
-			s.debug(fmt.Sprintf("dst2:%v", dst2))
-			s.moveItem(src, dst2)
-			s.P.Tiles[dst2.Y][dst2.X].Target = dst
-			s.P.Tiles[dst2.Y][dst2.X].Locked = false
-			s.debug("moveItem to corner")
-			s.moveZeroToCorner(dst2)
-			s.debug("moveZeroToNext")
-			s.lockCorner()
-			s.debug("lockCorner")
-			src = dst2
-		}
-
-		s.moveItem(src, dst)
-		s.debug("moveItem")
-
-		if inCorner {
-			s.P.Tiles[prev.Y][prev.X].Locked = true
-		}
-		prev = dst
-
-		s.unlockPath()
-		s.debug("unlockPath")
+		s.nextTile(i, &prev)
 	}
 	s.ByH = false
 	s.P.Next = 0
@@ -71,6 +27,63 @@ func (s Solver) Solve() Stats {
 	s.Stats.t = time.Since(start)
 	s.Stats.PathLen--
 	return s.Stats
+}
+
+func (s *Solver) nextTile(i int, prev *puzzle.Coordinates) {
+	s.P.Next = i
+	src := s.P.GetPosition(i)
+	dst := s.P.Tiles[src.Y][src.X].Target
+
+	if src == dst {
+		s.P.Tiles[src.Y][src.X].Locked = true
+		s.P.Tiles[src.Y][src.X].Relevant = true
+		s.debug("src=dst, continue")
+		*prev = dst
+		return
+	}
+
+	s.moveZeroToNext(src)
+	s.debug("moveZeroToNext")
+
+	inCorner := s.inCorner(dst)
+	if inCorner {
+		s.cornerTile(&src, dst, *prev)
+	}
+
+	s.moveItem(src, dst)
+	s.debug("moveItem")
+
+	if inCorner {
+		s.P.Tiles[prev.Y][prev.X].Locked = true
+	}
+	*prev = dst
+
+	s.unlockPath()
+	s.debug("unlockPath")
+}
+
+func (s *Solver) cornerTile(src *puzzle.Coordinates, dst, prev puzzle.Coordinates) {
+	s.P.Tiles[prev.Y][prev.X].Locked = false
+
+	s.makeCorner(dst)
+	s.debug(fmt.Sprintln("makeCorner:", s.Corner))
+
+	dst2 := s.zeroInCorner(*src, dst)
+	s.P.Tiles[src.Y][src.X].Target = dst2
+	s.debug(fmt.Sprintf("dst2:%v", dst2))
+
+	s.moveItem(*src, dst2)
+	s.P.Tiles[dst2.Y][dst2.X].Target = dst
+	s.P.Tiles[dst2.Y][dst2.X].Locked = false
+	s.debug("moveItem to corner")
+
+	s.moveZeroToCorner(dst2)
+	s.debug("moveZeroToNext")
+
+	s.lockCorner()
+	s.debug("lockCorner")
+
+	*src = dst2
 }
 
 func (s *Solver) makeCorner(dst puzzle.Coordinates) {

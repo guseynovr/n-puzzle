@@ -32,7 +32,7 @@ func Parse() (*Config, error) {
 			Desc: "manhattan",
 		}, "`heuristics` to be used: Manhattan, Euclidean, Diagonal, Tiles")
 	fs.DurationVar(&cfg.Pause, "p", time.Millisecond*200,
-		"pause between steps in animation in `milliseconds`")
+		"pause between steps in animation as `time.Duration`")
 	fs.BoolVar(&cfg.Blocks, "b", false, "show blocks")
 	fs.BoolVar(&cfg.Debug, "debug", false, "use debug pauses and logs")
 	if err := fs.Parse(os.Args[1:]); err != nil {
