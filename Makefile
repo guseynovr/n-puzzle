@@ -7,8 +7,8 @@ $(NAME):	$(SRC)
 
 all: 		$(NAME)
 
-compile:	
-			go tool compile $(SRC)
+build:	
+			go build $(SRC)
 
 clean:
 			go clean
@@ -18,4 +18,4 @@ fclean:		clean
 
 re:			fclean all
 
-.PHONY:		all clean fclean re compile
+.PHONY:		all clean fclean re compile build
