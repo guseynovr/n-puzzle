@@ -10,8 +10,8 @@ Usage of npuzzle:
     	path to the file with a starting board
   -he heuristics
     	heuristics to be used: Manhattan, Euclidean, Diagonal, Tiles (default manhattan)
-  -p milliseconds
-    	pause between steps in animation in milliseconds (default 200ms)
+  -p time.Duration
+      pause between steps in animation as time.Duration (default 200ms)
   -r size
     	generate random puzzle of given size (default 0)
 ```
