@@ -19,7 +19,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	p.MakeAllIrrelevant()
 	fmt.Printf("Start:\n%s\n", p)
+	p.MakeAllRelevant()
 	if !p.IsSolvable() {
 		fmt.Println("Puzzle is unsolvable")
 		return
